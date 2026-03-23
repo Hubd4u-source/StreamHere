@@ -47,9 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Ensure profile exists in background
-        import('@/lib/userDataService').then(({ userDataService }) => {
-          userDataService.ensureUserProfile(currentUser.uid, currentUser.email, currentUser.displayName);
+        import('@/lib/userDataService').then(async ({ userDataService }) => {
+          await userDataService.ensureUserProfile(currentUser.uid, currentUser.email, currentUser.displayName);
+          await userDataService.checkAndUpdateLoginStreak(currentUser.uid);
+          await userDataService.checkAndUnlockAchievements(currentUser.uid);
         });
       }
       setLoading(false);

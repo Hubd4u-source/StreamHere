@@ -59,6 +59,24 @@ export interface UserProfile {
     language: string;
     notifications: boolean;
   };
+  // Tier system
+  tier: 'free' | 'premium';
+  // Profile customization
+  bio?: string;
+  favoriteGenres?: string[];
+  socialLinks?: { platform: string; url: string }[];
+  bannerColor?: string;
+  // Engagement
+  loginStreak?: number;
+  lastLoginDate?: string; // YYYY-MM-DD
+  achievements?: string[]; // unlocked achievement IDs
+  weeklyProgress?: {
+    weekId: string;
+    episodes: number;
+    minutesWatched: number;
+    listAdds: number;
+    completed: boolean;
+  };
 }
 
 export const RANKS = [
@@ -127,6 +145,21 @@ class UserDataService {
           theme: 'dark',
           language: 'en',
           notifications: true
+        },
+        tier: 'free',
+        bio: '',
+        favoriteGenres: [],
+        socialLinks: [],
+        bannerColor: '#6366f1',
+        loginStreak: 1,
+        lastLoginDate: new Date().toISOString().split('T')[0],
+        achievements: [],
+        weeklyProgress: {
+          weekId: '',
+          episodes: 0,
+          minutesWatched: 0,
+          listAdds: 0,
+          completed: false
         }
       };
       await setDoc(userRef, userProfile);
@@ -395,6 +428,156 @@ class UserDataService {
   async isInMyList(uid: string, itemId: string): Promise<boolean> {
     const myList = await this.getMyList(uid);
     return myList.some(item => item.id === itemId);
+  }
+
+  // ─── Engagement Methods ───
+
+  async checkAndUpdateLoginStreak(uid: string): Promise<{ streak: number; xpGranted: number }> {
+    const userRef = this.getUserDocRef(uid);
+    const docSnap = await getDoc(userRef);
+    if (!docSnap.exists()) return { streak: 0, xpGranted: 0 };
+
+    const data = docSnap.data() as UserProfile;
+    const today = new Date().toISOString().split('T')[0];
+    const lastLogin = data.lastLoginDate || '';
+    let streak = data.loginStreak || 0;
+    let xpGranted = 0;
+
+    if (lastLogin === today) {
+      return { streak, xpGranted: 0 }; // Already logged in today
+    }
+
+    // Check if yesterday
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (lastLogin === yesterdayStr) {
+      streak += 1;
+    } else {
+      streak = 1; // Reset streak
+    }
+
+    // Calculate XP bonus
+    if (streak % 30 === 0) {
+      xpGranted = 500; // Monthly bonus
+    } else if (streak % 7 === 0) {
+      xpGranted = 100; // Weekly bonus
+    } else {
+      xpGranted = 25; // Daily bonus
+    }
+
+    await updateDoc(userRef, {
+      loginStreak: streak,
+      lastLoginDate: today,
+      lastLoginAt: Date.now()
+    });
+
+    if (xpGranted > 0) {
+      await this.addXP(uid, xpGranted, 0);
+    }
+
+    console.log(`UserDataService: Login streak for ${uid}: Day ${streak}, +${xpGranted} XP`);
+    return { streak, xpGranted };
+  }
+
+  async updateUserProfileFields(uid: string, updates: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'favoriteGenres' | 'socialLinks' | 'bannerColor' | 'photoURL'>>): Promise<void> {
+    const userRef = this.getUserDocRef(uid);
+    await updateDoc(userRef, updates as any);
+  }
+
+  async unlockAchievement(uid: string, achievementId: string, xpReward: number): Promise<void> {
+    const userRef = this.getUserDocRef(uid);
+    const docSnap = await getDoc(userRef);
+    if (!docSnap.exists()) return;
+
+    const data = docSnap.data() as UserProfile;
+    const achievements = data.achievements || [];
+
+    if (achievements.includes(achievementId)) return; // Already unlocked
+
+    achievements.push(achievementId);
+    await updateDoc(userRef, { achievements });
+    await this.addXP(uid, xpReward, 0);
+    console.log(`UserDataService: Achievement unlocked: ${achievementId} (+${xpReward} XP)`);
+  }
+
+  async checkAndUnlockAchievements(uid: string): Promise<string[]> {
+    const profile = await this.getUserProfile(uid);
+    if (!profile) return [];
+
+    const myList = await this.getMyList(uid);
+    const now = new Date();
+    const accountAgeDays = Math.floor((Date.now() - (profile.createdAt || Date.now())) / 86400000);
+
+    // Dynamically import to avoid circular deps
+    const { checkAchievements } = await import('./achievements');
+
+    const ctx = {
+      totalMinutesWatched: profile.stats?.totalMinutesWatched || 0,
+      episodesCompleted: profile.stats?.episodesCompleted || 0,
+      myListCount: myList.length,
+      loginStreak: profile.loginStreak || 0,
+      accountAgeDays,
+      socialLinksCount: (profile.socialLinks || []).length,
+      currentHour: now.getHours(),
+      leaderboardPosition: null, // Checked separately
+      tier: profile.tier || 'free'
+    };
+
+    const newAchievements = checkAchievements(profile.achievements || [], ctx);
+    const unlockedIds: string[] = [];
+
+    for (const a of newAchievements) {
+      await this.unlockAchievement(uid, a.id, a.xpReward);
+      unlockedIds.push(a.id);
+    }
+
+    return unlockedIds;
+  }
+
+  async updateWeeklyProgress(uid: string, type: 'episodes' | 'minutes' | 'list_adds', amount: number): Promise<void> {
+    const { getCurrentWeekChallenge } = await import('./achievements');
+    const challenge = getCurrentWeekChallenge();
+
+    const userRef = this.getUserDocRef(uid);
+    const docSnap = await getDoc(userRef);
+    if (!docSnap.exists()) return;
+
+    const data = docSnap.data() as UserProfile;
+    let progress = data.weeklyProgress || {
+      weekId: '',
+      episodes: 0,
+      minutesWatched: 0,
+      listAdds: 0,
+      completed: false
+    };
+
+    // Reset if new week
+    if (progress.weekId !== challenge.weekId) {
+      progress = { weekId: challenge.weekId, episodes: 0, minutesWatched: 0, listAdds: 0, completed: false };
+    }
+
+    if (progress.completed) return;
+
+    // Update the right counter
+    if (type === 'episodes') progress.episodes += amount;
+    else if (type === 'minutes') progress.minutesWatched += amount;
+    else if (type === 'list_adds') progress.listAdds += amount;
+
+    // Check completion
+    let currentValue = 0;
+    if (challenge.type === 'episodes') currentValue = progress.episodes;
+    else if (challenge.type === 'minutes') currentValue = progress.minutesWatched;
+    else if (challenge.type === 'list_adds') currentValue = progress.listAdds;
+
+    if (currentValue >= challenge.target && !progress.completed) {
+      progress.completed = true;
+      await this.addXP(uid, challenge.xpReward, 0);
+      console.log(`UserDataService: Weekly challenge completed! +${challenge.xpReward} XP`);
+    }
+
+    await updateDoc(userRef, { weeklyProgress: progress });
   }
 
   // Global Leaderboard
