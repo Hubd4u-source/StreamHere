@@ -103,29 +103,52 @@ class UserDataService {
   }
 
   // User Profile Management
-  async createUserProfile(user: any): Promise<void> {
-    const userProfile: UserProfile = {
-      uid: user.uid,
-      displayName: user.displayName || 'Anonymous User',
-      email: user.email,
-      photoURL: user.photoURL,
-      createdAt: Date.now(),
-      lastLoginAt: Date.now(),
-      stats: {
-        xp: 0,
-        rank: 'Newbie',
-        level: 1,
-        totalMinutesWatched: 0,
-        episodesCompleted: 0
-      },
-      preferences: {
-        theme: 'dark',
-        language: 'en',
-        notifications: true
+  async ensureUserProfile(uid: string, email: string | null, displayName: string | null, photoURL?: string | null): Promise<void> {
+    const userRef = this.getUserDocRef(uid);
+    const docSnap = await getDoc(userRef);
+    
+    if (!docSnap.exists()) {
+      console.log(`UserDataService: Creating initial profile for ${uid}`);
+      const userProfile: UserProfile = {
+        uid,
+        email,
+        displayName: displayName || 'Anime Legend',
+        photoURL: photoURL || null,
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+        stats: {
+          xp: 0,
+          rank: 'Newbie',
+          level: 1,
+          totalMinutesWatched: 0,
+          episodesCompleted: 0
+        },
+        preferences: {
+          theme: 'dark',
+          language: 'en',
+          notifications: true
+        }
+      };
+      await setDoc(userRef, userProfile);
+    } else {
+      const data = docSnap.data() as UserProfile;
+      if (!data.stats) {
+        console.log(`UserDataService: Migrating legacy user ${uid} to stats system`);
+        await updateDoc(userRef, {
+          stats: {
+            xp: 0,
+            rank: 'Newbie',
+            level: 1,
+            totalMinutesWatched: 0,
+            episodesCompleted: 0
+          }
+        });
       }
-    };
+    }
+  }
 
-    await setDoc(this.getUserDocRef(user.uid), userProfile);
+  async createUserProfile(user: any): Promise<void> {
+    await this.ensureUserProfile(user.uid, user.email, user.displayName, user.photoURL);
   }
 
   async getUserProfile(uid: string): Promise<UserProfile | null> {
