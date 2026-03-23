@@ -48,9 +48,9 @@ export interface UserStats {
 
 export interface UserProfile {
   uid: string;
-  displayName: string;
-  email: string;
-  photoURL?: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL?: string | null;
   createdAt: any;
   lastLoginAt: any;
   stats: UserStats;
