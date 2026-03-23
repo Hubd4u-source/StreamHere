@@ -100,7 +100,7 @@ export default function RecentlyWatchedHome() {
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-base">
                     <div 
-                      className={`h-full bg-accent shadow-[0_0_12px_var(--accent)] transition-all duration-1000 ease-out ${item.progress >= 95 ? 'bg-green-500 shadow-[0_0_12px_#22c55e]' : ''}`}
+                      className={`h-full bg-accent shadow-[0_0_12px_var(--accent)] transition-all duration-1000 ease-out ${(item.progress || 0) >= 95 ? 'bg-green-500 shadow-[0_0_12px_#22c55e]' : ''}`}
                       style={{ width: `${Math.min(100, Math.round(item.progress || 0))}%` }} 
                     />
                   </div>
