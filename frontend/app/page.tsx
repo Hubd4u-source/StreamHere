@@ -7,6 +7,7 @@ import NewAnimeCard from "@/components/NewAnimeCard";
 import OngoingSeriesGrid from "@/components/OngoingSeriesGrid";
 import UpcomingEpisodesGrid from "@/components/UpcomingEpisodesGrid";
 import ContinueWatchingHome from "@/components/ContinueWatchingHome";
+import RecentlyWatchedHome from "@/components/RecentlyWatchedHome";
 
 export default async function HomePage() {
   // Fetch trending anime
@@ -82,6 +83,11 @@ export default async function HomePage() {
             ))}
           </NewCarousel>
         </section>
+
+        {/* Recently Watched */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <RecentlyWatchedHome />
+        </div>
 
         {/* Networks Section */}
         <section>

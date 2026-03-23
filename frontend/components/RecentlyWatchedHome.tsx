@@ -3,28 +3,23 @@ import React, { useMemo } from "react";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProgress } from "@/components/useProgress";
-import NewAnimeCard from "./NewAnimeCard";
 
-export default function ContinueWatchingHome() {
+export default function RecentlyWatchedHome() {
   const { user } = useAuth();
   const { watchHistory, isLoading } = useWatchHistory();
-  const { ratio } = useProgress();
 
-  // If user is logged in, use cloud history. If guest, use local progress.
+  // Show most recent 12 items regardless of progress
   const entries = useMemo(() => {
     if (user) {
-      // Filter for items with significant progress but not fully finished (>2% and <95%)
-      return watchHistory
-        .filter(item => (item.progress || 0) > 2 && (item.progress || 0) < 95)
-        .slice(0, 12);
+      return watchHistory.slice(0, 12);
     } else {
       // Guest fallback (Local Storage)
       try {
         const raw = localStorage.getItem('amai:progress:v1');
         const map = raw ? JSON.parse(raw) as Record<string, { position: number; duration: number }> : {};
         return Object.entries(map)
-          .filter(([, v]) => v && v.duration > 0 && (v.position || 0) > 0 && (v.position / v.duration) < 0.95 && (v.position / v.duration) > 0.02)
-          .sort((a, b) => (b[1].position / b[1].duration) - (a[1].position / a[1].duration))
+          .filter(([, v]) => v && v.duration > 0 && (v.position || 0) > 0)
+          .sort((a, b) => b[1].position - a[1].position) // Simplistic sort
           .map(([url, v]) => ({
              id: url,
              url: url,
@@ -47,9 +42,10 @@ export default function ContinueWatchingHome() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="section-heading text-3xl md:text-4xl text-content-primary">Continue Watching</h2>
-            <p className="section-subtitle text-lg">Pick up exactly where you left off</p>
+            <h2 className="section-heading text-3xl md:text-4xl text-content-primary">Recently Viewed</h2>
+            <p className="section-subtitle text-lg">Your full watch history</p>
           </div>
+          <a href="/watch-history" className="text-accent text-sm font-bold hover:underline">View All</a>
         </div>
 
         {isLoading ? (
@@ -61,8 +57,7 @@ export default function ContinueWatchingHome() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {entries.map((item) => {
-              // Always use internal /watch route — extract path from any stored URL
-              const episodeId = item.url.replace(/^https?:\/\/[^\/]+/, ''); // Strip domain if present
+              const episodeId = item.url.replace(/^https?:\/\/[^\/]+/, '');
               const watchUrl = `/watch?episode=${encodeURIComponent(episodeId)}`;
               
               return (
@@ -84,7 +79,6 @@ export default function ContinueWatchingHome() {
                     </div>
                   )}
                   
-                  {/* Subtle Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-bg-base/90 via-bg-base/20 to-transparent opacity-80" />
 
                   <div className="absolute bottom-3 left-4 right-4 z-20">
@@ -106,12 +100,12 @@ export default function ContinueWatchingHome() {
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-base">
                     <div 
-                      className="h-full bg-accent shadow-[0_0_12px_var(--accent)] transition-all duration-1000 ease-out" 
+                      className={`h-full bg-accent shadow-[0_0_12px_var(--accent)] transition-all duration-1000 ease-out ${item.progress >= 95 ? 'bg-green-500 shadow-[0_0_12px_#22c55e]' : ''}`}
                       style={{ width: `${Math.min(100, Math.round(item.progress || 0))}%` }} 
                     />
                   </div>
                 </div>
-                </a>
+              </a>
               );
             })}
           </div>
