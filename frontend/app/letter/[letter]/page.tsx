@@ -94,7 +94,6 @@ export default async function LetterPage({
               postId={item.postId}
               genres={[]}
               year={2024}
-              episodeCount={null}
             />
           ))}
         </div>
