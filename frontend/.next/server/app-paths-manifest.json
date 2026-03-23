@@ -1,0 +1,9 @@
+{
+  "/series/page": "app/series/page.js",
+  "/page": "app/page.js",
+  "/api/upcoming/route": "app/api/upcoming/route.js",
+  "/api/ongoing/route": "app/api/ongoing/route.js",
+  "/signin/page": "app/signin/page.js",
+  "/genres/page": "app/genres/page.js",
+  "/letter/[letter]/page": "app/letter/[letter]/page.js"
+}

@@ -1,0 +1,100 @@
+"use client";
+import { useEffect, useState } from "react";
+import NewAnimeCard from "./NewAnimeCard";
+import { SeriesListItem } from "@/server/types";
+
+export default function OngoingSeriesGrid() {
+  const [ongoingSeries, setOngoingSeries] = useState<SeriesListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadOngoingSeries = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/ongoing?page=1');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setOngoingSeries(data.items || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading ongoing series:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load ongoing series');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOngoingSeries();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="animate-pulse space-y-3">
+            <div className="aspect-[2/3] w-full bg-bg-surface border border-border-subtle rounded-2xl"></div>
+            <div className="h-3 w-3/4 bg-bg-surface rounded-full"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-bg-surface border border-red-500/20 rounded-3xl p-8 max-w-md mx-auto">
+          <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto mb-4">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 className="section-heading text-lg mb-2">Error Loading Series</h3>
+          <p className="text-content-tertiary text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (ongoingSeries.length === 0) {
+    return (
+      <div className="text-center py-12 opacity-50">
+        <p className="text-content-tertiary">No ongoing series available at the moment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-12">
+      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {ongoingSeries.slice(0, 6).map((series) => (
+          <div key={series.url} className="w-full">
+            <NewAnimeCard
+              url={series.url}
+              title={series.title || 'Unknown Title'}
+              image={series.image}
+              postId={series.postId}
+              rating={Math.floor(Math.random() * 2) + 4}
+              year={2024}
+              episodeCount={24}
+              isNew={true}
+            />
+          </div>
+        ))}
+      </div>
+      
+      {ongoingSeries.length > 6 && (
+        <div className="text-center pt-4">
+          <a
+            href="/ongoing"
+            className="btn-outline px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/40 transition-all inline-flex items-center gap-2"
+          >
+            <span>View All Ongoing</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
