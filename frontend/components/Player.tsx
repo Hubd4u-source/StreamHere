@@ -61,6 +61,8 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     }, 2000); // 2 second delay
 
     return () => clearTimeout(timer);
+  }, [episodeData, hasAddedToHistory, addToWatchHistory]);
+
   // Heartbeat for IFrames (since we can't track progress via events)
   useEffect(() => {
     if (!current || current.kind !== "iframe" || !episodeData) return;
