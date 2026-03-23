@@ -9,7 +9,8 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -19,6 +20,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signIn: (e: string, p: string) => Promise<void>;
   signUp: (e: string, p: string, d: string) => Promise<void>;
+  resetPassword: (e: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   signInWithGoogle: async () => {},
   signIn: async () => {},
   signUp: async () => {},
+  resetPassword: async () => {},
   logout: async () => {},
 });
 
@@ -66,6 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const logout = async () => {
     try {
       await firebaseSignOut(auth);
@@ -75,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signIn, signUp, logout }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signIn, signUp, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
