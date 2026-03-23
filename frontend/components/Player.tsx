@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useProgress } from "@/components/useProgress";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
+import { useAuth } from "@/contexts/AuthContext";
 
 type PlayerSourceItem = { src: string; kind: "iframe" | "video"; label?: string | null; quality?: string | null };
 
@@ -26,6 +27,7 @@ export default function Player({ sources, episodeData }: PlayerProps) {
   const [idx, setIdx] = useState(0);
   const current = safeSources[idx] || null;
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { user } = useAuth();
   const { set: setProgress, get: getProgress } = useProgress();
   const { addToWatchHistory, updateWatchProgress } = useWatchHistory();
   const [hasAddedToHistory, setHasAddedToHistory] = useState(false);
