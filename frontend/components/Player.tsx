@@ -63,6 +63,18 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     return () => clearTimeout(timer);
   }, [episodeData, hasAddedToHistory, addToWatchHistory]);
 
+  // Debug effect to track user presence
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).amai_auth = {
+        isLoggedIn: !!user,
+        uid: user?.uid || null,
+        email: user?.email || null
+      };
+      if (!user) console.warn('AMAI Player: User not found. XP tracking disabled.');
+    }
+  }, [user]);
+
   // Heartbeat for IFrames (since we can't track progress via events)
   useEffect(() => {
     if (!current || current.kind !== "iframe" || !episodeData) return;
@@ -72,7 +84,7 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     const interval = setInterval(() => {
       // Only sync if the tab is visible to prevent AFK XP farming
       if (document.visibilityState === 'visible') {
-        console.log('Player: Iframe heartbeat - Updating watch time');
+        console.log('Player: Iframe heartbeat - Syncing with Firestore...');
         updateWatchProgress(episodeData.id, 0, 0, {
           id: episodeData.id,
           title: episodeData.title,
@@ -81,8 +93,17 @@ export default function Player({ sources, episodeData }: PlayerProps) {
           poster: episodeData.poster,
           url: episodeData.url
         }, true); // Pass isHeartbeat=true
+        
+        // Update debug object
+        if (typeof window !== 'undefined') {
+          (window as any).amai_xp = {
+            last_heartbeat: new Date().toLocaleTimeString(),
+            status: 'Synced',
+            content: episodeData.title
+          };
+        }
       }
-    }, 60000); // Every 1 minute
+    }, 30000); // Every 30 seconds for better responsiveness
 
     return () => clearInterval(interval);
   }, [current?.src, current?.kind, episodeData, updateWatchProgress]);
@@ -92,6 +113,11 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     if (!current || current.kind !== "video") return;
     const v = videoRef.current;
     if (!v) return;
+
+    if (typeof window !== 'undefined') {
+      (window as any).amai_xp_mode = 'HTML5-Video';
+    }
+
     try {
       const p = getProgress(current.src);
       if (p && p.position > 0 && p.duration > 0 && p.position < p.duration - 2) {
@@ -107,11 +133,11 @@ export default function Player({ sources, episodeData }: PlayerProps) {
         // Update LocalStorage (for guests/redundancy)
         setProgress(current.src, v.currentTime || 0, v.duration || 0);
 
-        // Update Firestore (for logged in users - every ~3% increment to save writes)
+        // Update Firestore (for logged in users - every ~3% increment)
         if (episodeData) {
           const lastSynced = v.getAttribute('data-last-sync') || '0';
           if (Math.abs(progress - parseFloat(lastSynced)) > 3 || v.ended) {
-            console.log(`Player: Syncing progress ${progress.toFixed(2)}% to Firestore`);
+            console.log(`Player: HTML5 Sync at ${progress.toFixed(2)}%`);
             
             // Debug for user
             if (typeof window !== 'undefined') {

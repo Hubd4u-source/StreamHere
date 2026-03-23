@@ -226,31 +226,40 @@ class UserDataService {
     
     // If it's a heartbeat, we just want to grant XP and update the "watchedAt" timestamp
     if (isHeartbeat) {
-      console.log(`UserDataService: Heartbeat for ${itemId}. Granting 10 XP.`);
-      await this.addXP(uid, 10, 1); // 10 XP, 1 minute
+      console.log(`UserDataService: Heartbeat for ${itemId}. Granting 5 XP.`);
+      await this.addXP(uid, 5, 0.5); // 5 XP, 0.5 minutes (30s)
       
       if (itemIndex !== -1) {
         history[itemIndex].watchedAt = Date.now();
         const updatedItem = history.splice(itemIndex, 1)[0];
         history.unshift(updatedItem);
-        await setDoc(historyRef, { items: history.slice(0, 50) });
+        try {
+          await setDoc(historyRef, { items: history.slice(0, 50) });
+        } catch (e) {
+          console.error('UserDataService: Failed to save history heartbeat:', e);
+        }
       } else if (fallbackData) {
         // Add to history if not there
+        console.log(`UserDataService: First heartbeat for ${itemId}. Creating history entry.`);
         const newItem: WatchHistoryItem = {
           ...fallbackData,
-          progress: 5, // Small placeholder progress
+          progress: 1, // Tiny starting progress
           duration: 0,
           watchedAt: Date.now()
         };
         history.unshift(newItem);
-        await setDoc(historyRef, { items: history.slice(0, 50) });
+        try {
+          await setDoc(historyRef, { items: history.slice(0, 50) });
+        } catch (e) {
+          console.error('UserDataService: Failed to create history entry:', e);
+        }
       }
       return;
     }
 
     if (itemIndex === -1 && fallbackData) {
       // If item not found but we have fallback data, add it now
-      console.log(`UserDataService: Item ${itemId} not found in history. Adding with progress ${progress}%`);
+      console.log(`UserDataService: Item ${itemId} not found in history. Adding initial entry.`);
       const newItem: WatchHistoryItem = {
         ...fallbackData,
         progress,
@@ -260,8 +269,8 @@ class UserDataService {
       history.unshift(newItem);
       itemIndex = 0;
       
-      // Grant initial XP for starting
-      await this.addXP(uid, 10, (progress / 100) * (durationSeconds / 60));
+      // Grant initial XP for starting (5 XP)
+      await this.addXP(uid, 5, (progress / 100) * (durationSeconds / 60));
     }
 
     if (itemIndex !== -1) {
@@ -269,7 +278,7 @@ class UserDataService {
       const progressDiff = progress - oldProgress;
       
       // Only grant XP if progress is increasing
-      if (progressDiff > 1) {
+      if (progressDiff > 0.5) { // Lowered threshold for better tracking
         const minutesEarned = (progressDiff / 100) * (durationSeconds / 60);
         const xpEarned = Math.round(minutesEarned * 10); // 10 XP per minute
 
@@ -287,7 +296,11 @@ class UserDataService {
       const updatedItem = history.splice(itemIndex, 1)[0];
       history.unshift(updatedItem);
       
-      await setDoc(historyRef, { items: history.slice(0, 50) });
+      try {
+        await setDoc(historyRef, { items: history.slice(0, 50) });
+      } catch (e) {
+        console.error('UserDataService: Failed to save progress update:', e);
+      }
     }
   }
 
