@@ -397,6 +397,27 @@ class UserDataService {
     return myList.some(item => item.id === itemId);
   }
 
+  // Global Leaderboard
+  async getGlobalLeaderboard(limitCount: number = 50): Promise<Array<UserProfile & { position: number }>> {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, orderBy('stats.xp', 'desc'), limit(limitCount));
+      const snapshot = await getDocs(q);
+      
+      const users: Array<UserProfile & { position: number }> = [];
+      snapshot.forEach((docSnap, ) => {
+        const data = docSnap.data() as UserProfile;
+        if (data.stats && data.stats.xp > 0) {
+          users.push({ ...data, position: users.length + 1 });
+        }
+      });
+      return users;
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      return [];
+    }
+  }
+
   // Statistics
   async getUserStats(uid: string) {
     const [profile, watchHistory, myList] = await Promise.all([

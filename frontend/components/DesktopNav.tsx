@@ -2,9 +2,9 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useMemo } from "react";
-import { HomeIcon, MagnifyingGlassIcon, TvIcon, FilmIcon, SwatchIcon, Square3Stack3DIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, MagnifyingGlassIcon, TvIcon, FilmIcon, SwatchIcon, Square3Stack3DIcon, TrophyIcon } from "@heroicons/react/24/outline";
 
-type RoutePath = "/" | "/search" | "/series" | "/movies" | "/anime" | "/cartoon";
+type RoutePath = "/" | "/search" | "/series" | "/movies" | "/anime" | "/cartoon" | "/leaderboard";
 type Item = { label: string; href: RoutePath; icon: (active: boolean) => JSX.Element };
 
 function HomeIconComponent(active: boolean) {
@@ -40,6 +40,7 @@ export default function DesktopNav() {
     { label: "Movies", href: "/movies", icon: MoviesIconComponent },
     { label: "Anime", href: "/anime", icon: AnimeIconComponent },
     { label: "Cartoon", href: "/cartoon", icon: CartoonIconComponent },
+    { label: "Ranks", href: "/leaderboard", icon: (active: boolean) => <TrophyIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} /> },
   ]), []);
 
   return (
