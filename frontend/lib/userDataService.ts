@@ -31,7 +31,7 @@ export interface MyListItem {
   title: string;
   poster?: string;
   url: string;
-  addedAt: Date;
+  addedAt: number;
   status: 'watching' | 'completed' | 'plan-to-watch' | 'dropped';
   rating?: number; // 1-10
   notes?: string;
@@ -166,7 +166,7 @@ class UserDataService {
     const myListRef = this.getMyListRef(uid);
     const myListItem: MyListItem = {
       ...item,
-      addedAt: new Date()
+      addedAt: Date.now()
     };
 
     // Get current list
@@ -197,7 +197,7 @@ class UserDataService {
         myList = myList.filter(item => item.status === status);
       }
       
-      return myList.sort((a, b) => b.addedAt.getTime() - a.addedAt.getTime());
+      return myList.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
     }
     return [];
   }
