@@ -378,6 +378,20 @@ class UserDataService {
     }
   }
 
+  async updateMyListItem(uid: string, itemId: string, updates: Partial<MyListItem>): Promise<void> {
+    const myListRef = this.getMyListRef(uid);
+    const docSnap = await getDoc(myListRef);
+    
+    if (docSnap.exists()) {
+      const myList: MyListItem[] = docSnap.data().items || [];
+      const idx = myList.findIndex(item => item.id === itemId);
+      if (idx !== -1) {
+        myList[idx] = { ...myList[idx], ...updates };
+        await setDoc(myListRef, { items: myList });
+      }
+    }
+  }
+
   async isInMyList(uid: string, itemId: string): Promise<boolean> {
     const myList = await this.getMyList(uid);
     return myList.some(item => item.id === itemId);
