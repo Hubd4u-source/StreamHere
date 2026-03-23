@@ -62,7 +62,10 @@ export function parseEpisodesFromHtml(html: string): EpisodeItem[] {
     let epPoster: string | null = null;
     const imgEl = $(el).find('img').first();
     if (imgEl && imgEl.length) {
-      epPoster = imgEl.attr('src') || imgEl.attr('data-src') || null;
+      epPoster = imgEl.attr('data-src') || imgEl.attr('data-lazy-src') || imgEl.attr('data-img') || imgEl.attr('data-original') || imgEl.attr('data-thumb') || imgEl.attr('src') || null;
+      if (epPoster && /^data:image\/svg\+xml/i.test(epPoster)) {
+        epPoster = imgEl.attr('data-lazy-src') || imgEl.attr('data-src') || null;
+      }
       if (epPoster) { try { epPoster = new URL(epPoster, BASE).toString(); } catch { } }
     }
     if (href) episodes.push({ number: numberText, title: titleText || null, url: new URL(href, BASE).toString(), poster: epPoster });
