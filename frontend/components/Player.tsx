@@ -27,7 +27,7 @@ export default function Player({ sources, episodeData }: PlayerProps) {
   const current = safeSources[idx] || null;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const { set: setProgress, get: getProgress } = useProgress();
-  const { addToWatchHistory } = useWatchHistory();
+  const { addToWatchHistory, updateWatchProgress } = useWatchHistory();
   const [hasAddedToHistory, setHasAddedToHistory] = useState(false);
 
   // Add to watch history when user starts watching
@@ -78,7 +78,19 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     const onTime = () => {
       try {
         if (!v.duration || isNaN(v.duration)) return;
+        const progress = (v.currentTime / v.duration) * 100;
+        
+        // Update LocalStorage (for guests/redundancy)
         setProgress(current.src, v.currentTime || 0, v.duration || 0);
+
+        // Update Firestore (for logged in users - every ~10% increment to save writes)
+        if (episodeData) {
+          const lastSynced = v.getAttribute('data-last-sync') || '0';
+          if (Math.abs(progress - parseFloat(lastSynced)) > 5 || v.ended) {
+            updateWatchProgress(episodeData.id, progress, v.duration);
+            v.setAttribute('data-last-sync', progress.toString());
+          }
+        }
       } catch {}
     };
     v.addEventListener("timeupdate", onTime);

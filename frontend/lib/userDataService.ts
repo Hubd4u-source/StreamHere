@@ -10,7 +10,8 @@ import {
   query,
   orderBy,
   limit,
-  getDocs
+  getDocs,
+  increment
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -21,7 +22,7 @@ export interface WatchHistoryItem {
   season?: string;
   poster?: string;
   url: string;
-  watchedAt: Date;
+  watchedAt: number; // Use number for consistency
   progress?: number; // 0-100 percentage
   duration?: number; // total duration in seconds
 }
@@ -37,19 +38,41 @@ export interface MyListItem {
   notes?: string;
 }
 
+export interface UserStats {
+  xp: number;
+  rank: string;
+  level: number;
+  totalMinutesWatched: number;
+  episodesCompleted: number;
+}
+
 export interface UserProfile {
   uid: string;
   displayName: string;
   email: string;
   photoURL?: string;
-  createdAt: Date;
-  lastLoginAt: Date;
+  createdAt: any;
+  lastLoginAt: any;
+  stats: UserStats;
   preferences: {
     theme: 'light' | 'dark' | 'auto';
     language: string;
     notifications: boolean;
   };
 }
+
+export const RANKS = [
+  { name: 'Newbie', minXP: 0, color: '#94a3b8' },          // Slate 400
+  { name: 'Apprentice', minXP: 1000, color: '#4ade80' },    // Green 400
+  { name: 'Watcher', minXP: 5000, color: '#60a5fa' },       // Blue 400
+  { name: 'Otaku', minXP: 15000, color: '#f472b6' },        // Pink 400
+  { name: 'Elite Watcher', minXP: 30000, color: '#fb923c' }, // Orange 400
+  { name: 'Anime Master', minXP: 60000, color: '#a855f7' },  // Purple 500
+  { name: 'Legend', minXP: 120000, color: '#facc15' },      // Yellow 400
+  { name: 'Mythic', minXP: 250000, color: '#f87171' },      // Red 400
+  { name: 'Celestial', minXP: 500000, color: '#2dd4bf' },   // Teal 400
+  { name: 'Amai Overlord', minXP: 1000000, color: '#ffffff' } // White
+];
 
 class UserDataService {
   private getUserDocRef(uid: string) {
@@ -64,6 +87,21 @@ class UserDataService {
     return doc(db, 'users', uid, 'data', 'myList');
   }
 
+  public calculateRank(xp: number) {
+    for (let i = RANKS.length - 1; i >= 0; i--) {
+      if (xp >= RANKS[i].minXP) {
+        return {
+          ...RANKS[i],
+          nextRank: RANKS[i+1] || null,
+          progressToNext: RANKS[i+1] 
+            ? ((xp - RANKS[i].minXP) / (RANKS[i+1].minXP - RANKS[i].minXP)) * 100 
+            : 100
+        };
+      }
+    }
+    return { ...RANKS[0], nextRank: RANKS[1], progressToNext: 0 };
+  }
+
   // User Profile Management
   async createUserProfile(user: any): Promise<void> {
     const userProfile: UserProfile = {
@@ -71,8 +109,15 @@ class UserDataService {
       displayName: user.displayName || 'Anonymous User',
       email: user.email,
       photoURL: user.photoURL,
-      createdAt: new Date(),
-      lastLoginAt: new Date(),
+      createdAt: Date.now(),
+      lastLoginAt: Date.now(),
+      stats: {
+        xp: 0,
+        rank: 'Newbie',
+        level: 1,
+        totalMinutesWatched: 0,
+        episodesCompleted: 0
+      },
       preferences: {
         theme: 'dark',
         language: 'en',
@@ -97,7 +142,7 @@ class UserDataService {
     const docRef = this.getUserDocRef(uid);
     await updateDoc(docRef, {
       ...updates,
-      lastLoginAt: serverTimestamp()
+      lastLoginAt: Date.now()
     });
   }
 
@@ -106,10 +151,9 @@ class UserDataService {
     const historyRef = this.getWatchHistoryRef(uid);
     const historyItem: WatchHistoryItem = {
       ...item,
-      watchedAt: new Date()
+      watchedAt: Date.now()
     };
 
-    // Get current history
     const docSnap = await getDoc(historyRef);
     let history: WatchHistoryItem[] = [];
     
@@ -117,21 +161,18 @@ class UserDataService {
       history = docSnap.data().items || [];
     }
 
-    // Remove existing entry for same episode if exists
+    // Move to top and update data
     history = history.filter(h => h.id !== item.id);
-
-    // Add new entry at the beginning
     history.unshift(historyItem);
 
-    // Keep only last 100 entries
-    if (history.length > 100) {
-      history = history.slice(0, 100);
+    if (history.length > 50) {
+      history = history.slice(0, 50);
     }
 
     await setDoc(historyRef, { items: history });
   }
 
-  async getWatchHistory(uid: string, limitCount: number = 50): Promise<WatchHistoryItem[]> {
+  async getWatchHistory(uid: string, limitCount: number = 24): Promise<WatchHistoryItem[]> {
     const historyRef = this.getWatchHistoryRef(uid);
     const docSnap = await getDoc(historyRef);
     
@@ -142,17 +183,56 @@ class UserDataService {
     return [];
   }
 
-  async updateWatchProgress(uid: string, itemId: string, progress: number): Promise<void> {
+  async updateWatchProgress(uid: string, itemId: string, progress: number, durationSeconds: number): Promise<void> {
     const historyRef = this.getWatchHistoryRef(uid);
     const docSnap = await getDoc(historyRef);
     
     if (docSnap.exists()) {
       const history: WatchHistoryItem[] = docSnap.data().items || [];
-      const updatedHistory = history.map(item => 
-        item.id === itemId ? { ...item, progress } : item
-      );
+      const itemIndex = history.findIndex(item => item.id === itemId);
       
-      await setDoc(historyRef, { items: updatedHistory });
+      if (itemIndex !== -1) {
+        const oldProgress = history[itemIndex].progress || 0;
+        const progressDiff = progress - oldProgress;
+        
+        // Only grant XP if progress is increasing
+        if (progressDiff > 1) {
+          const minutesEarned = (progressDiff / 100) * (durationSeconds / 60);
+          const xpEarned = Math.round(minutesEarned * 10); // 10 XP per minute
+
+          if (xpEarned > 0) {
+            await this.addXP(uid, xpEarned, minutesEarned);
+          }
+        }
+
+        history[itemIndex].progress = progress;
+        history[itemIndex].duration = durationSeconds;
+        history[itemIndex].watchedAt = Date.now();
+        
+        // Boost back to the top
+        const updatedItem = history.splice(itemIndex, 1)[0];
+        history.unshift(updatedItem);
+        
+        await setDoc(historyRef, { items: history });
+      }
+    }
+  }
+
+  private async addXP(uid: string, xp: number, minutes: number) {
+    const userRef = this.getUserDocRef(uid);
+    const docSnap = await getDoc(userRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data() as UserProfile;
+      const newXP = (data.stats?.xp || 0) + xp;
+      const newMinutes = (data.stats?.totalMinutesWatched || 0) + minutes;
+      const rankInfo = this.calculateRank(newXP);
+      
+      await updateDoc(userRef, {
+        'stats.xp': newXP,
+        'stats.totalMinutesWatched': newMinutes,
+        'stats.rank': rankInfo.name
+      });
     }
   }
 
@@ -169,7 +249,6 @@ class UserDataService {
       addedAt: Date.now()
     };
 
-    // Get current list
     const docSnap = await getDoc(myListRef);
     let myList: MyListItem[] = [];
     
@@ -177,13 +256,13 @@ class UserDataService {
       myList = docSnap.data().items || [];
     }
 
-    // Remove existing entry if exists
     myList = myList.filter(item => item.id !== myListItem.id);
-
-    // Add new entry
     myList.push(myListItem);
 
     await setDoc(myListRef, { items: myList });
+    
+    // Bonus XP for adding to list
+    await this.addXP(uid, 50, 0);
   }
 
   async getMyList(uid: string, status?: string): Promise<MyListItem[]> {
@@ -192,28 +271,10 @@ class UserDataService {
     
     if (docSnap.exists()) {
       let myList: MyListItem[] = docSnap.data().items || [];
-      
-      if (status) {
-        myList = myList.filter(item => item.status === status);
-      }
-      
+      if (status) myList = myList.filter(item => item.status === status);
       return myList.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
     }
     return [];
-  }
-
-  async updateMyListItem(uid: string, itemId: string, updates: Partial<MyListItem>): Promise<void> {
-    const myListRef = this.getMyListRef(uid);
-    const docSnap = await getDoc(myListRef);
-    
-    if (docSnap.exists()) {
-      const myList: MyListItem[] = docSnap.data().items || [];
-      const updatedList = myList.map(item => 
-        item.id === itemId ? { ...item, ...updates } : item
-      );
-      
-      await setDoc(myListRef, { items: updatedList });
-    }
   }
 
   async removeFromMyList(uid: string, itemId: string): Promise<void> {
@@ -223,7 +284,6 @@ class UserDataService {
     if (docSnap.exists()) {
       const myList: MyListItem[] = docSnap.data().items || [];
       const updatedList = myList.filter(item => item.id !== itemId);
-      
       await setDoc(myListRef, { items: updatedList });
     }
   }
@@ -234,20 +294,23 @@ class UserDataService {
   }
 
   // Statistics
-  async getUserStats(uid: string): Promise<{
-    totalWatched: number;
-    totalInList: number;
-    watchingCount: number;
-    completedCount: number;
-    planToWatchCount: number;
-  }> {
-    const [watchHistory, myList] = await Promise.all([
-      this.getWatchHistory(uid),
+  async getUserStats(uid: string) {
+    const [profile, watchHistory, myList] = await Promise.all([
+      this.getUserProfile(uid),
+      this.getWatchHistory(uid, 100),
       this.getMyList(uid)
     ]);
 
+    const stats = profile?.stats || {
+      xp: 0,
+      rank: 'Newbie',
+      level: 1,
+      totalMinutesWatched: 0,
+      episodesCompleted: 0
+    };
+
     return {
-      totalWatched: watchHistory.length,
+      ...stats,
       totalInList: myList.length,
       watchingCount: myList.filter(item => item.status === 'watching').length,
       completedCount: myList.filter(item => item.status === 'completed').length,

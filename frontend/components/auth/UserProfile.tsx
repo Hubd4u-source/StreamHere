@@ -128,13 +128,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 alt={user.displayName || 'User'}
                 className="w-12 h-12 rounded-2xl object-cover border border-border-subtle"
               />
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 <p className="text-content-primary font-bold tracking-tight">
                   {user.displayName || 'Premium Member'}
                 </p>
-                <p className="text-content-tertiary text-xs truncate max-w-[160px]">
-                  {user.email}
-                </p>
+                <div className="flex items-center gap-2">
+                  <span 
+                    className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/10"
+                    style={{ 
+                      backgroundColor: `${userDataService.calculateRank(userProfile?.stats?.xp || 0).color}20`,
+                      color: userDataService.calculateRank(userProfile?.stats?.xp || 0).color 
+                    }}
+                  >
+                    {userProfile?.stats?.rank || 'Newbie'}
+                  </span>
+                  <span className="text-content-tertiary text-[10px] font-bold">
+                    {Math.round(userProfile?.stats?.xp || 0).toLocaleString()} XP
+                  </span>
+                </div>
               </div>
             </div>
           </div>
