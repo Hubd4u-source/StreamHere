@@ -270,24 +270,16 @@ class UserDataService {
 
   private async addXP(uid: string, xp: number, minutes: number) {
     const userRef = this.getUserDocRef(uid);
-    const docSnap = await getDoc(userRef);
     
+    // Ensure the doc exists first (especially for legacy users)
+    await this.ensureUserProfile(uid, null, null);
+    
+    const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
       const data = docSnap.data() as UserProfile;
-      
-      // Safety for legacy users missing stats
-      if (!data.stats) {
-        data.stats = {
-          xp: 0,
-          rank: 'Newbie',
-          level: 1,
-          totalMinutesWatched: 0,
-          episodesCompleted: 0
-        };
-      }
-
-      const newXP = (data.stats.xp || 0) + xp;
-      const newMinutes = (data.stats.totalMinutesWatched || 0) + minutes;
+      // data.stats is guaranteed now by ensureUserProfile
+      const newXP = (data.stats!.xp || 0) + xp;
+      const newMinutes = (data.stats!.totalMinutesWatched || 0) + minutes;
       const rankInfo = this.calculateRank(newXP);
       
       await updateDoc(userRef, {

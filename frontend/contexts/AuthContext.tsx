@@ -44,8 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        // Ensure profile exists in background
+        import('@/lib/userDataService').then(({ userDataService }) => {
+          userDataService.ensureUserProfile(currentUser.uid, currentUser.email, currentUser.displayName);
+        });
+      }
       setLoading(false);
     });
 

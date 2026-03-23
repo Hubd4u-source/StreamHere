@@ -107,11 +107,21 @@ export default function Player({ sources, episodeData }: PlayerProps) {
         // Update LocalStorage (for guests/redundancy)
         setProgress(current.src, v.currentTime || 0, v.duration || 0);
 
-        // Update Firestore (for logged in users - every ~5% increment to save writes)
+        // Update Firestore (for logged in users - every ~3% increment to save writes)
         if (episodeData) {
           const lastSynced = v.getAttribute('data-last-sync') || '0';
-          if (Math.abs(progress - parseFloat(lastSynced)) > 5 || v.ended) {
+          if (Math.abs(progress - parseFloat(lastSynced)) > 3 || v.ended) {
             console.log(`Player: Syncing progress ${progress.toFixed(2)}% to Firestore`);
+            
+            // Debug for user
+            if (typeof window !== 'undefined') {
+              (window as any).amai_xp = {
+                last_sync: new Date().toLocaleTimeString(),
+                progress: progress.toFixed(2),
+                id: episodeData.id
+              };
+            }
+
             updateWatchProgress(episodeData.id, progress, v.duration, {
               id: episodeData.id,
               title: episodeData.title,
