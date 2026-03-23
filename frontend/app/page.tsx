@@ -113,7 +113,7 @@ export default async function HomePage() {
               >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-bg-surface border border-border-subtle rounded-full flex items-center justify-center transition-all duration-500 group-hover:bg-bg-elevated group-hover:border-accent/30 group-hover:shadow-xl group-hover:shadow-accent/5">
                   <img
-                    src={`/api/image?src=${encodeURIComponent(BASE + net.img)}`}
+                    src={`/api/image?src=${encodeURIComponent(net.img)}`}
                     alt={net.name}
                     className="max-w-[50%] max-h-[50%] object-contain opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
                   />

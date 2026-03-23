@@ -24,8 +24,8 @@ export default function SmartButtons({ buttons }: SmartButtonsProps) {
       if (url.startsWith('http')) {
         urlObj = new URL(url);
       } else {
-        // If it's a relative URL, make it absolute
-        urlObj = new URL(url, process.env.NEXT_PUBLIC_SITE_BASE || 'https://animesalt.top');
+        // If it's a relative URL, make it absolute using a dummy base for parsing
+        urlObj = new URL(url, 'http://localhost');
       }
 
       const pathParts = urlObj.pathname.split('/').filter(Boolean);

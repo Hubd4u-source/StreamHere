@@ -15,10 +15,14 @@ export async function GET(req: NextRequest) {
       }
       return NextResponse.redirect(src, { status: 302 });
     }
-    if (!/^https?:\/\//i.test(src)) return NextResponse.json({ error: true, message: 'Invalid src' }, { status: 400 });
+
+    // Attach BASE to relative paths from the scraper
+    const targetUrl = src.startsWith('/') ? `${BASE}${src}` : src;
+
+    if (!/^https?:\/\//i.test(targetUrl)) return NextResponse.json({ error: true, message: 'Invalid src' }, { status: 400 });
     const origin = BASE;
     const axios = (await import('axios')).default;
-    const resp = await axios.get<ArrayBuffer>(src, {
+    const resp = await axios.get<ArrayBuffer>(targetUrl, {
       responseType: 'arraybuffer',
       headers: {
         'User-Agent': 'Mozilla/5.0',

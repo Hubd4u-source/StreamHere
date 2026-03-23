@@ -2,8 +2,25 @@ import axios, { AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
 import { AnimeDetailsResponse, AnimeListResponse, EpisodeItem, SeasonItem, SeriesListItem, PlayerSourceItem } from './types';
 
-export const BASE = (process.env.NEXT_PUBLIC_SITE_BASE || 'https://animesalt.ac').replace(/\/+$/, '');
+if (!process.env.SITE_BASE) {
+  console.warn("WARNING: SITE_BASE environment variable is missing!");
+}
+export const BASE = (process.env.SITE_BASE || '').replace(/\/+$/, '');
 const AJAX = `${BASE}/wp-admin/admin-ajax.php`;
+
+export function stripBaseUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const fullUrl = new URL(url, BASE).toString();
+    if (fullUrl.startsWith(BASE)) {
+      const rel = fullUrl.replace(BASE, '');
+      return rel || '/';
+    }
+    return fullUrl;
+  } catch {
+    return url;
+  }
+}
 
 function createHttpClient(): AxiosInstance {
   const instance = axios.create({
@@ -66,7 +83,7 @@ export function parseEpisodesFromHtml(html: string): EpisodeItem[] {
       if (epPoster && /^data:image\/svg\+xml/i.test(epPoster)) {
         epPoster = imgEl.attr('data-lazy-src') || imgEl.attr('data-src') || null;
       }
-      if (epPoster) { try { epPoster = new URL(epPoster, BASE).toString(); } catch { } }
+      epPoster = stripBaseUrl(epPoster);
     }
     if (href) episodes.push({ number: numberText, title: titleText || null, url: new URL(href, BASE).toString(), poster: epPoster });
   });
@@ -189,8 +206,7 @@ export function parseAnimeListFromHtml(html: string): SeriesListItem[] {
       const m = style.match(/background-image\s*:\s*url\((['\"]?)([^)\'\"]+)\1\)/i);
       if (m && m[2]) img = m[2];
     }
-    if (img) { try { img = new URL(img, abs).toString(); } catch { } }
-    items.push({ title, url: abs, image: img || undefined, postId });
+    items.push({ title, url: abs, image: stripBaseUrl(img) || undefined, postId });
   });
   if (items.length === 0) {
     // Fallback: look for any series or movie links
