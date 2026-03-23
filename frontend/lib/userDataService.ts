@@ -183,38 +183,88 @@ class UserDataService {
     return [];
   }
 
-  async updateWatchProgress(uid: string, itemId: string, progress: number, durationSeconds: number): Promise<void> {
+  async updateWatchProgress(
+    uid: string, 
+    itemId: string, 
+    progress: number, 
+    durationSeconds: number, 
+    fallbackData?: Omit<WatchHistoryItem, 'watchedAt' | 'progress' | 'duration'>,
+    isHeartbeat: boolean = false
+  ): Promise<void> {
     const historyRef = this.getWatchHistoryRef(uid);
     const docSnap = await getDoc(historyRef);
     
+    let history: WatchHistoryItem[] = [];
     if (docSnap.exists()) {
-      const history: WatchHistoryItem[] = docSnap.data().items || [];
-      const itemIndex = history.findIndex(item => item.id === itemId);
+      history = docSnap.data().items || [];
+    }
+    
+    let itemIndex = history.findIndex(item => item.id === itemId);
+    
+    // If it's a heartbeat, we just want to grant XP and update the "watchedAt" timestamp
+    if (isHeartbeat) {
+      console.log(`UserDataService: Heartbeat for ${itemId}. Granting 10 XP.`);
+      await this.addXP(uid, 10, 1); // 10 XP, 1 minute
       
       if (itemIndex !== -1) {
-        const oldProgress = history[itemIndex].progress || 0;
-        const progressDiff = progress - oldProgress;
-        
-        // Only grant XP if progress is increasing
-        if (progressDiff > 1) {
-          const minutesEarned = (progressDiff / 100) * (durationSeconds / 60);
-          const xpEarned = Math.round(minutesEarned * 10); // 10 XP per minute
-
-          if (xpEarned > 0) {
-            await this.addXP(uid, xpEarned, minutesEarned);
-          }
-        }
-
-        history[itemIndex].progress = progress;
-        history[itemIndex].duration = durationSeconds;
         history[itemIndex].watchedAt = Date.now();
-        
-        // Boost back to the top
         const updatedItem = history.splice(itemIndex, 1)[0];
         history.unshift(updatedItem);
-        
-        await setDoc(historyRef, { items: history });
+        await setDoc(historyRef, { items: history.slice(0, 50) });
+      } else if (fallbackData) {
+        // Add to history if not there
+        const newItem: WatchHistoryItem = {
+          ...fallbackData,
+          progress: 5, // Small placeholder progress
+          duration: 0,
+          watchedAt: Date.now()
+        };
+        history.unshift(newItem);
+        await setDoc(historyRef, { items: history.slice(0, 50) });
       }
+      return;
+    }
+
+    if (itemIndex === -1 && fallbackData) {
+      // If item not found but we have fallback data, add it now
+      console.log(`UserDataService: Item ${itemId} not found in history. Adding with progress ${progress}%`);
+      const newItem: WatchHistoryItem = {
+        ...fallbackData,
+        progress,
+        duration: durationSeconds,
+        watchedAt: Date.now()
+      };
+      history.unshift(newItem);
+      itemIndex = 0;
+      
+      // Grant initial XP for starting
+      await this.addXP(uid, 10, (progress / 100) * (durationSeconds / 60));
+    }
+
+    if (itemIndex !== -1) {
+      const oldProgress = history[itemIndex].progress || 0;
+      const progressDiff = progress - oldProgress;
+      
+      // Only grant XP if progress is increasing
+      if (progressDiff > 1) {
+        const minutesEarned = (progressDiff / 100) * (durationSeconds / 60);
+        const xpEarned = Math.round(minutesEarned * 10); // 10 XP per minute
+
+        if (xpEarned > 0) {
+          console.log(`UserDataService: Granting ${xpEarned} XP for ${minutesEarned.toFixed(2)} minutes watched`);
+          await this.addXP(uid, xpEarned, minutesEarned);
+        }
+      }
+
+      history[itemIndex].progress = progress;
+      history[itemIndex].duration = durationSeconds;
+      history[itemIndex].watchedAt = Date.now();
+      
+      // Boost back to the top
+      const updatedItem = history.splice(itemIndex, 1)[0];
+      history.unshift(updatedItem);
+      
+      await setDoc(historyRef, { items: history.slice(0, 50) });
     }
   }
 
@@ -224,8 +274,20 @@ class UserDataService {
     
     if (docSnap.exists()) {
       const data = docSnap.data() as UserProfile;
-      const newXP = (data.stats?.xp || 0) + xp;
-      const newMinutes = (data.stats?.totalMinutesWatched || 0) + minutes;
+      
+      // Safety for legacy users missing stats
+      if (!data.stats) {
+        data.stats = {
+          xp: 0,
+          rank: 'Newbie',
+          level: 1,
+          totalMinutesWatched: 0,
+          episodesCompleted: 0
+        };
+      }
+
+      const newXP = (data.stats.xp || 0) + xp;
+      const newMinutes = (data.stats.totalMinutesWatched || 0) + minutes;
       const rankInfo = this.calculateRank(newXP);
       
       await updateDoc(userRef, {

@@ -37,12 +37,17 @@ export const useWatchHistory = () => {
     }
   };
 
-  const updateWatchProgress = async (itemId: string, progress: number, durationSeconds: number) => {
+  const updateWatchProgress = async (
+    itemId: string, 
+    progress: number, 
+    durationSeconds: number,
+    fallbackData?: Omit<WatchHistoryItem, 'watchedAt' | 'progress' | 'duration'>,
+    isHeartbeat: boolean = false
+  ) => {
     if (!user) return;
 
     try {
-      await userDataService.updateWatchProgress(user.uid, itemId, progress, durationSeconds);
-      // No need to reload entire history every time for progress updates
+      await userDataService.updateWatchProgress(user.uid, itemId, progress, durationSeconds, fallbackData, isHeartbeat);
     } catch (error) {
       console.error('Error updating watch progress:', error);
     }

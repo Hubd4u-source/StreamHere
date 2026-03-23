@@ -348,14 +348,16 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
         <div className="max-w-[1000px] mx-auto w-full">
           <Player
             sources={sources as any}
-            episodeData={currentEpisode ? {
-              id: `${animeDetails?.postId || resolvedPostId}-${currentEpisode.number || '1'}-${effectiveSeason}`,
-              title: currentEpisode.title || `Episode ${currentEpisode.number || '1'}`,
-              episode: currentEpisode.number || '1',
+            episodeData={{
+              id: currentEpisode 
+                ? `${animeDetails?.postId || resolvedPostId}-${currentEpisode.number || '1'}-${effectiveSeason}`
+                : `${resolvedPostId || generateSlug(seriesTitle)}-${isMovie ? 'movie' : '1'}-${effectiveSeason}`,
+              title: currentEpisode?.title || (isMovie ? seriesTitle : episodeTitle),
+              episode: currentEpisode?.number || (isMovie ? 'Movie' : '1'),
               season: String(effectiveSeason),
-              poster: currentEpisode.poster || animeDetails?.poster || null,
+              poster: currentEpisode?.poster || animeDetails?.poster || null,
               url: episodeUrl
-            } : undefined}
+            }}
           />
         </div>
 

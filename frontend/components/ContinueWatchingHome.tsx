@@ -29,6 +29,7 @@ export default function ContinueWatchingHome() {
              id: url,
              url: url,
              title: decodeURIComponent(url.split('/').filter(Boolean).pop() || 'Episode').replace(/-/g, ' '),
+             episode: url.match(/-(\d+)x(\d+)$/i)?.[2] || '?',
              progress: (v.position / v.duration) * 100,
              poster: undefined
           }))

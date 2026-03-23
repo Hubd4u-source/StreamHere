@@ -61,7 +61,29 @@ export default function Player({ sources, episodeData }: PlayerProps) {
     }, 2000); // 2 second delay
 
     return () => clearTimeout(timer);
-  }, [episodeData, hasAddedToHistory, addToWatchHistory]);
+  // Heartbeat for IFrames (since we can't track progress via events)
+  useEffect(() => {
+    if (!current || current.kind !== "iframe" || !episodeData) return;
+
+    console.log('Player: Starting iframe heartbeat for:', episodeData.title);
+    
+    const interval = setInterval(() => {
+      // Only sync if the tab is visible to prevent AFK XP farming
+      if (document.visibilityState === 'visible') {
+        console.log('Player: Iframe heartbeat - Updating watch time');
+        updateWatchProgress(episodeData.id, 0, 0, {
+          id: episodeData.id,
+          title: episodeData.title,
+          episode: episodeData.episode,
+          season: episodeData.season,
+          poster: episodeData.poster,
+          url: episodeData.url
+        }, true); // Pass isHeartbeat=true
+      }
+    }, 60000); // Every 1 minute
+
+    return () => clearInterval(interval);
+  }, [current?.src, current?.kind, episodeData, updateWatchProgress]);
 
   // Resume time for HTML5 video
   useEffect(() => {
@@ -83,11 +105,19 @@ export default function Player({ sources, episodeData }: PlayerProps) {
         // Update LocalStorage (for guests/redundancy)
         setProgress(current.src, v.currentTime || 0, v.duration || 0);
 
-        // Update Firestore (for logged in users - every ~10% increment to save writes)
+        // Update Firestore (for logged in users - every ~5% increment to save writes)
         if (episodeData) {
           const lastSynced = v.getAttribute('data-last-sync') || '0';
           if (Math.abs(progress - parseFloat(lastSynced)) > 5 || v.ended) {
-            updateWatchProgress(episodeData.id, progress, v.duration);
+            console.log(`Player: Syncing progress ${progress.toFixed(2)}% to Firestore`);
+            updateWatchProgress(episodeData.id, progress, v.duration, {
+              id: episodeData.id,
+              title: episodeData.title,
+              episode: episodeData.episode,
+              season: episodeData.season,
+              poster: episodeData.poster,
+              url: episodeData.url
+            });
             v.setAttribute('data-last-sync', progress.toString());
           }
         }
