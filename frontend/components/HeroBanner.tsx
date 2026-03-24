@@ -8,10 +8,23 @@ import { heroFeatured, HeroItem } from "@/lib/heroData"
 const AUTO_ADVANCE_MS = 7000   // 7 seconds per slide
 
 export default function HeroBanner() {
+  const [items, setItems] = useState<HeroItem[]>(heroFeatured)
   const [current, setCurrent] = useState(0)
   const [prev, setPrev] = useState<number | null>(null)
   const [transitioning, setTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+
+  // Fetch dynamic featured items
+  useEffect(() => {
+    fetch('/api/featured')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setItems(data)
+        }
+      })
+      .catch(err => console.error("Failed to load dynamic hero content:", err))
+  }, [])
   
   const goTo = useCallback((index: number) => {
     if (index === current || transitioning) return
@@ -25,9 +38,9 @@ export default function HeroBanner() {
   }, [current, transitioning])
 
   const goNext = useCallback(() => {
-    const nextIndex = (current + 1) % heroFeatured.length
+    const nextIndex = (current + 1) % items.length
     goTo(nextIndex)
-  }, [current, goTo])
+  }, [current, goTo, items.length])
 
   // Auto-advance timer
   useEffect(() => {
@@ -71,7 +84,7 @@ export default function HeroBanner() {
     >
 
       {/* ── BACKDROP LAYERS ─────────────────────────── */}
-      {heroFeatured.map((slide, i) => (
+      {items.map((slide, i) => (
         <div
           key={slide.id}
           className={`hero-backdrop-layer ${
@@ -151,7 +164,7 @@ export default function HeroBanner() {
 
         {/* Thumbnail dots */}
         <div className="hero-dots" role="tablist" aria-label="Featured titles">
-          {heroFeatured.map((slide, i) => (
+          {items.map((slide, i) => (
             <button
               key={slide.id}
               role="tab"
@@ -178,7 +191,7 @@ export default function HeroBanner() {
         <div className="hero-arrows">
           <button
             className="hero-arrow"
-            onClick={() => goTo((current - 1 + heroFeatured.length) % heroFeatured.length)}
+            onClick={() => goTo((current - 1 + items.length) % items.length)}
             aria-label="Previous"
           >
             <ChevronLeftIcon />
