@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
-import { AnimeDetailsResponse, AnimeListResponse, EpisodeItem, SeasonItem, SeriesListItem, PlayerSourceItem } from './types';
+import { AnimeDetailsResponse, AnimeListResponse, EpisodeItem, SeasonItem, SeriesListItem, PlayerSourceItem, TMDBDetails } from './types';
 
 if (!process.env.SITE_BASE) {
   console.warn("WARNING: SITE_BASE environment variable is missing!");
