@@ -11,6 +11,7 @@ export default function HeroBanner() {
   const [current, setCurrent] = useState(0)
   const [prev, setPrev] = useState<number | null>(null)
   const [transitioning, setTransitioning] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Touch handlers
@@ -18,10 +19,12 @@ export default function HeroBanner() {
   const touchEndX   = useRef<number>(0)
 
   function handleTouchStart(e: React.TouchEvent) {
+    setIsPaused(true)
     touchStartX.current = e.changedTouches[0].screenX
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
+    setIsPaused(false)
     touchEndX.current = e.changedTouches[0].screenX
     const delta = touchStartX.current - touchEndX.current
     if (Math.abs(delta) < 50) return    // ignore small movements
@@ -49,12 +52,14 @@ export default function HeroBanner() {
 
   // Auto-advance
   useEffect(() => {
+    if (isPaused) return;
+
     const reducedMotion = typeof window !== 'undefined' ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
     if (!reducedMotion) {
       timerRef.current = setTimeout(goNext, AUTO_ADVANCE_MS)
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [current, goNext])
+  }, [current, goNext, isPaused])
 
   const item = heroFeatured[current]
 
@@ -64,6 +69,8 @@ export default function HeroBanner() {
       aria-label="Featured anime"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
 
       {/* ── BACKDROP LAYERS ─────────────────────────── */}
