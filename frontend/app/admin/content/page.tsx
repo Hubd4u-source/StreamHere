@@ -90,7 +90,7 @@ export default function AdminContentPage() {
                 <tr key={anime.id} className="hover:bg-accent/5 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <img src={anime.image} alt="" className="w-10 h-14 object-cover rounded-lg bg-bg-elevated shadow-md" />
+                        <img src={anime.image || ''} alt="" className="w-10 h-14 object-cover rounded-lg bg-bg-elevated shadow-md" />
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-content-primary line-clamp-1">{anime.title}</p>
                         <p className="text-[10px] text-content-tertiary font-mono">{anime.id}</p>

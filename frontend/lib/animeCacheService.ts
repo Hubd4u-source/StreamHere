@@ -115,6 +115,17 @@ class AnimeCacheService {
       throw e;
     }
   }
+
+  async deleteCache(slug: string): Promise<void> {
+    try {
+      if (!slug) return;
+      const safeId = slug.replace(/[^a-zA-Z0-9_-]/g, '_');
+      await deleteDoc(doc(db, CACHE_COLLECTION, safeId));
+    } catch (e) {
+      console.error(`AnimeCacheService: Error deleting cache for ${slug}`, e);
+      throw e;
+    }
+  }
 }
 
 export const animeCacheService = new AnimeCacheService();

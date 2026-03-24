@@ -71,7 +71,7 @@ export default function EditContentPage() {
         <div className="lg:col-span-4 space-y-6">
            <div className="bg-bg-surface border border-border-subtle rounded-[2.5rem] p-6 space-y-6 overflow-hidden shadow-2xl shadow-black/40">
               <div className="aspect-[2/3] relative rounded-3xl overflow-hidden bg-bg-elevated border border-border-subtle group">
-                 <img src={anime.image} alt={anime.title} className="w-full h-full object-cover" />
+                 <img src={anime.image || ''} alt={anime.title || 'Poster'} className="w-full h-full object-cover" />
                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center space-y-2">
                     <p className="text-xs text-white font-black uppercase tracking-widest">Preview Mode</p>
                     <p className="text-[10px] text-white/60">Uploads coming in future updates</p>
@@ -82,7 +82,7 @@ export default function EditContentPage() {
                     <span className="text-[10px] font-black text-content-tertiary uppercase tracking-[0.2em] block mb-3">Poster URL</span>
                     <input 
                        type="text" 
-                       value={anime.image} 
+                       value={anime.image || ''} 
                        onChange={e => setAnime({...anime, image: e.target.value})}
                        className="w-full px-5 py-4 bg-bg-elevated border border-border-subtle rounded-2xl text-xs focus:outline-none focus:border-accent transition-all font-medium"
                     />
@@ -108,7 +108,7 @@ export default function EditContentPage() {
                     <span className="text-sm font-black text-content-primary uppercase tracking-widest block mb-4">Anime Title</span>
                     <input 
                        type="text" 
-                       value={anime.title} 
+                       value={anime.title || ''} 
                        onChange={e => setAnime({...anime, title: e.target.value})}
                        className="w-full px-6 py-5 bg-bg-elevated border border-border-subtle rounded-2xl text-lg font-bold text-content-primary focus:outline-none focus:border-accent transition-all shadow-inner"
                     />
