@@ -1,12 +1,22 @@
 import axios, { AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
-import { AnimeDetailsResponse, AnimeListResponse, EpisodeItem, SeasonItem, SeriesListItem, PlayerSourceItem, TMDBDetails } from './types';
+import { AnimeDetailsResponse, AnimeListResponse, EpisodeItem, SeasonItem, SeriesListItem, PlayerSourceItem, TMDBDetails, ScheduleDay, ScheduleItem } from './types';
+import { settingsService } from '@/lib/settingsService';
+import { animeCacheService } from '@/lib/animeCacheService';
 
 if (!process.env.SITE_BASE) {
   console.warn("WARNING: SITE_BASE environment variable is missing!");
 }
-export const BASE = (process.env.SITE_BASE || '').replace(/\/+$/, '');
-const AJAX = `${BASE}/wp-admin/admin-ajax.php`;
+export let BASE = (process.env.SITE_BASE || '').replace(/\/+$/, '');
+export let AJAX = `${BASE}/wp-admin/admin-ajax.php`;
+
+export async function refreshDynamicConfig() {
+  const settings = await settingsService.getSettings();
+  if (settings.site_base) {
+    BASE = settings.site_base.replace(/\/+$/, '');
+    AJAX = `${BASE}/wp-admin/admin-ajax.php`;
+  }
+}
 
 export function stripBaseUrl(url: string | null): string | null {
   if (!url) return null;
@@ -224,6 +234,7 @@ export function parseAnimeListFromHtml(html: string): SeriesListItem[] {
 }
 
 export async function fetchAnimeList(page: number): Promise<AnimeListResponse> {
+  await refreshDynamicConfig();
   console.log(`fetchAnimeList called with page: ${page}`);
 
   const payload = new URLSearchParams({ action: 'torofilm_infinite_scroll', page: String(page), per_page: '12', query_type: 'archive', post_type: 'series' });
@@ -378,11 +389,47 @@ function parseMetaFromHtml(html: string): { genres?: string[]; year?: number | n
   return out;
 }
 
-export async function fetchAnimeDetails(params: { url: string; postId: number; season?: number | null; }): Promise<AnimeDetailsResponse> {
-  const { url, postId, season } = params;
+export async function fetchAnimeDetails(params: { url: string; postId: number; season?: number | null; includePlayers?: boolean }): Promise<AnimeDetailsResponse> {
+  await refreshDynamicConfig();
+  const { url, postId, season, includePlayers = false } = params;
+
+  // 1. Check Cache First
+  const slug = url.split('/').filter(Boolean).pop() || '';
+  if (slug) {
+    try {
+      const cached = await animeCacheService.getCachedAnime(slug);
+      // Only return cache if it's not stale AND it has players (if requested)
+      if (cached && !animeCacheService.isStale(cached)) {
+        const hasPlayers = cached.episodes?.every(ep => Array.isArray(ep.players) && ep.players.length > 0);
+        if (!includePlayers || hasPlayers) {
+          console.log(`AnimeCacheService: Cache hit for ${slug}`);
+          return {
+            title: cached.title,
+            image: cached.image,
+            synopsis: cached.synopsis || "",
+            status: cached.status || "",
+            episodes: cached.episodes || [],
+            seasons: cached.seasons || [],
+            url: cached.url || url,
+            postId: cached.postId || postId
+          } as AnimeDetailsResponse;
+        }
+      }
+    } catch (err) {
+      console.error(`AnimeCacheService: Cache error for ${slug}`, err);
+    }
+  }
+
   // Movies use a different structure; delegate to movie details
   if (/\/movies\//i.test(url)) {
-    return await fetchMovieDetails(url);
+    const movieDetails = await fetchMovieDetails(url);
+    if (slug && movieDetails) {
+       animeCacheService.saveAnime(slug, {
+         ...movieDetails,
+         type: 'movie'
+       });
+    }
+    return movieDetails;
   }
   const pageResp = await http.get(url);
   const html = pageResp.data as string;
@@ -522,7 +569,53 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
     }
   });
 
-  return { url, postId: resolvedPostId, season: season ?? null, seasons, episodes, poster, related, smartButtons, ...meta };
+  const title = $('h1').text().trim();
+  
+  // 3. Deep Sync Player Sources if requested
+  if (includePlayers && episodes.length > 0) {
+    console.log(`Bulk Importer: Deep Syncing ${episodes.length} episodes for ${title}`);
+    for (let i = 0; i < episodes.length; i++) {
+       try {
+         const players = await fetchEpisodePlayers(episodes[i].url);
+         episodes[i].players = players;
+         // Delay to be safe
+         if (i < episodes.length - 1) await new Promise(r => setTimeout(r, 300));
+       } catch (e) {
+         console.warn(`Bulk Importer: Failed to fetch players for episode ${episodes[i].number} of ${title}`);
+       }
+    }
+  }
+
+  const details = { 
+    title,
+    image: poster || "",
+    url, 
+    postId: resolvedPostId, 
+    season: season ?? null, 
+    seasons, 
+    episodes, 
+    poster, 
+    related, 
+    smartButtons, 
+    ...meta 
+  } as AnimeDetailsResponse;
+
+  // 4. Save to Cache
+  if (slug && details.title) {
+    animeCacheService.saveAnime(slug, {
+      title: details.title,
+      image: details.poster || details.image || "",
+      synopsis: details.synopsis || "",
+      status: details.status || "",
+      type: 'series',
+      episodes: details.episodes,
+      seasons: details.seasons,
+      url: details.url,
+      postId: details.postId
+    });
+  }
+
+  return details;
 }
 
 export async function fetchEpisodePlayers(episodeUrl: string) {
@@ -577,6 +670,7 @@ export async function enrichSeriesPosters(items: SeriesListItem[]): Promise<Seri
 }
 
 export async function fetchMoviesList(page: number, query?: string): Promise<AnimeListResponse> {
+  await refreshDynamicConfig();
   let items: SeriesListItem[] = [];
 
   try {
@@ -652,6 +746,7 @@ export async function fetchMoviesList(page: number, query?: string): Promise<Ani
 export async function fetchMovieDetails(url: string): Promise<AnimeDetailsResponse> {
   const pageResp = await http.get(url);
   const html = pageResp.data as string;
+  const $ = cheerio.load(html);
   const poster = parsePosterFromHtml(html, url);
   const meta = parseMetaFromHtml(html);
   // Try to extract players directly from movie page
@@ -659,6 +754,8 @@ export async function fetchMovieDetails(url: string): Promise<AnimeDetailsRespon
   const episodes: EpisodeItem[] = [{ title: 'Full Movie', url, number: null, poster }];
   return {
     url,
+    title: $('h1').text().trim(),
+    image: poster || "",
     postId: 0,
     season: null,
     seasons: [],
@@ -666,7 +763,7 @@ export async function fetchMovieDetails(url: string): Promise<AnimeDetailsRespon
     poster,
     ...meta,
     players,
-  };
+  } as AnimeDetailsResponse;
 }
 
 function extractPlayersFromHtml(html: string, baseUrl: string): PlayerSourceItem[] {
@@ -752,6 +849,7 @@ function extractPlayersFromHtml(html: string, baseUrl: string): PlayerSourceItem
 }
 
 export async function fetchLetterList(letter: string, page: number = 1): Promise<AnimeListResponse> {
+  await refreshDynamicConfig();
   console.log(`Fetching letter list - Letter: ${letter}, Page: ${page}`);
 
   let items: SeriesListItem[] = [];
@@ -783,6 +881,7 @@ export async function fetchLetterList(letter: string, page: number = 1): Promise
 }
 
 export async function fetchCartoonList(page: number = 1, query: string = ''): Promise<AnimeListResponse> {
+  await refreshDynamicConfig();
   console.log(`Fetching cartoon list - Page: ${page}, Query: ${query}`);
 
   let items: SeriesListItem[] = [];
@@ -1030,7 +1129,6 @@ export async function fetchOngoingSeries(page: number = 1, query: string = ''): 
       }
     }
   } catch (err) {
-    console.error('Error in fetchOngoingSeries:', err);
     throw new Error(`Failed to fetch ongoing series: ${err instanceof Error ? err.message : 'Unknown error'}`);
   }
 
@@ -1044,152 +1142,94 @@ export async function fetchOngoingSeries(page: number = 1, query: string = ''): 
   return { page, items };
 }
 
+// Helper to get all anime slugs currently available on the site
+async function fetchAvailableSlugs(): Promise<Set<string>> {
+  console.log('Building site availability cache...');
+  const slugs = new Set<string>();
+  
+  try {
+    // Check Series (First 5 pages)
+    for (let p = 1; p <= 5; p++) {
+      const res = await fetchAnimeList(p);
+      if (!res.items || res.items.length === 0) break;
+      res.items.forEach(item => {
+        if (item.title) {
+          const s = item.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+          if (s) slugs.add(s);
+        }
+      });
+      if (res.items.length < 5) break; 
+    }
+
+    // Check Movies (First 3 pages)
+    for (let p = 1; p <= 3; p++) {
+      const res = await fetchMoviesList(p);
+      if (!res.items || res.items.length === 0) break;
+      res.items.forEach(item => {
+        if (item.title) {
+          const s = item.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+          if (s) slugs.add(s);
+        }
+      });
+      if (res.items.length < 5) break;
+    }
+  } catch (err) {
+    console.error('Error building availability cache:', err);
+  }
+  
+  console.log(`Availability cache built with ${slugs.size} slugs`);
+  return slugs;
+}
+
 export async function fetchUpcomingEpisodes(): Promise<{
   episodes: Array<{
     id: string;
     title: string;
     image: string;
     episode: string;
-    countdown: number;
+    countdown: string | number;
     url: string;
   }>;
 }> {
-  console.log('Fetching upcoming episodes data');
+  await refreshDynamicConfig();
+  console.log('Fetching upcoming episodes data from Jikan API');
+  const targetUrl = 'https://api.jikan.moe/v4/seasons/upcoming?limit=20';
 
   try {
-    // Fetch the main page to get upcoming episodes
-    const response = await http.get(`${BASE}/`, { responseType: 'text' });
-    const html = String(response.data || '');
+    const [availableSlugs, { data }] = await Promise.all([
+      fetchAvailableSlugs(),
+      http.get(targetUrl)
+    ]);
+    
+    const episodes = (data.data || []).map((item: any) => {
+      const airedDate = item.aired?.from ? new Date(item.aired.from) : null;
+      const countdown = airedDate ? Math.floor(airedDate.getTime() / 1000) : 0;
+      
+      const slug = (item.title || 'Unknown Anime')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
 
-    // Parse upcoming episodes from the HTML
-    const episodes: Array<{
-      id: string;
-      title: string;
-      image: string;
-      episode: string;
-      countdown: number;
-      url: string;
-    }> = [];
+      // Only include if available on site
+      if (!availableSlugs.has(slug)) return null;
 
-    // Extract episode information using regex patterns
-    const episodePattern = /<div class="swiper-slide upcoming-ep-swiper-slide[^>]*>.*?<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>.*?<span class="year">([^<]*)<\/span>.*?<span class="countdown-timer"[^>]*data-target="([^"]*)"[^>]*>.*?<a href="([^"]*)"[^>]*class="lnk-blk"[^>]*>/gs;
-
-    let match;
-    let id = 1;
-
-    while ((match = episodePattern.exec(html)) !== null) {
-      const [, imageSrc, title, episode, countdown, url] = match;
-
-      // Clean up the data
-      const cleanImage = imageSrc.startsWith('//') ? `https:${imageSrc}` : imageSrc;
-      const cleanTitle = title.replace(/Image\s+/i, '').trim();
-      const cleanEpisode = episode.trim();
-      const cleanUrl = url.replace(BASE, ''); // Remove base URL to keep internal links
-      const countdownTimestamp = parseInt(countdown, 10);
-
-      if (cleanTitle && cleanEpisode && countdownTimestamp) {
-        episodes.push({
-          id: id.toString(),
-          title: cleanTitle,
-          image: cleanImage,
-          episode: cleanEpisode,
-          countdown: countdownTimestamp,
-          url: cleanUrl
-        });
-        id++;
-      }
-    }
-
-    console.log(`Found ${episodes.length} upcoming episodes`);
-
-    // If no episodes found with regex, try alternative parsing
-    if (episodes.length === 0) {
-      console.log('No episodes found with regex, trying alternative parsing...');
-
-      // Look for upcoming episodes section
-      const upcomingSection = html.match(/<section[^>]*id="torofilm_upcoming_episodes[^>]*>([\s\S]*?)<\/section>/i);
-
-      if (upcomingSection) {
-        const sectionHtml = upcomingSection[1];
-
-        // Extract individual episode cards
-        const cardPattern = /<article[^>]*class="post[^>]*>.*?<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>.*?<span class="year">([^<]*)<\/span>.*?<span class="countdown-timer"[^>]*data-target="([^"]*)"[^>]*>.*?<a href="([^"]*)"[^>]*class="lnk-blk"[^>]*>/gs;
-
-        while ((match = cardPattern.exec(sectionHtml)) !== null) {
-          const [, imageSrc, title, episode, countdown, url] = match;
-
-          const cleanImage = imageSrc.startsWith('//') ? `https:${imageSrc}` : imageSrc;
-          const cleanTitle = title.replace(/Image\s+/i, '').trim();
-          const cleanEpisode = episode.trim();
-          const cleanUrl = url.replace(BASE, '');
-          const countdownTimestamp = parseInt(countdown, 10);
-
-          if (cleanTitle && cleanEpisode && countdownTimestamp) {
-            episodes.push({
-              id: id.toString(),
-              title: cleanTitle,
-              image: cleanImage,
-              episode: cleanEpisode,
-              countdown: countdownTimestamp,
-              url: cleanUrl
-            });
-            id++;
-          }
-        }
-      }
-    }
-
-    // If still no episodes found, return fallback data
-    if (episodes.length === 0) {
-      console.log('No episodes found, returning fallback data');
       return {
-        episodes: [
-          {
-            id: "1",
-            title: "Clevatess",
-            image: "https://image.tmdb.org/t/p/w500/31I6eGFgYbbn5FMwzxOVlZfYETW.jpg",
-            episode: "EP:9",
-            countdown: Math.floor(Date.now() / 1000) + (6 * 60 * 60), // 6 hours from now
-            url: "/series/clevatess"
-          },
-          {
-            id: "2",
-            title: "Naruto Shippuden",
-            image: "https://image.tmdb.org/t/p/w500/kV27j3Nz4d5z8u6mN3EJw9RiLg2.jpg",
-            episode: "EP:242-243",
-            countdown: Math.floor(Date.now() / 1000) + (9 * 60 * 60), // 9 hours from now
-            url: "/series/naruto-shippuden"
-          }
-        ]
+        id: item.mal_id.toString(),
+        title: item.title,
+        image: item.images?.webp?.large_image_url || item.images?.jpg?.large_image_url || '',
+        episode: item.type || 'Upcoming',
+        countdown: countdown,
+        url: `/watch?slug=${slug}`
       };
-    }
+    }).filter((ep: any) => ep !== null);
 
+    console.log(`Filtered: Showing ${episodes.length} of ${data.data?.length || 0} upcoming episodes`);
     return { episodes };
-
   } catch (error) {
-    console.error('Error fetching upcoming episodes:', error);
-
-    // Return fallback data on error
-    return {
-      episodes: [
-        {
-          id: "1",
-          title: "Clevatess",
-          image: "https://image.tmdb.org/t/p/w500/31I6eGFgYbbn5FMwzxOVlZfYETW.jpg",
-          episode: "EP:9",
-          countdown: Math.floor(Date.now() / 1000) + (6 * 60 * 60),
-          url: "/series/clevatess"
-        },
-        {
-          id: "2",
-          title: "Naruto Shippuden",
-          image: "https://image.tmdb.org/t/p/w500/kV27j3Nz4d5z8u6mN3EJw9RiLg2.jpg",
-          episode: "EP:242-243",
-          countdown: Math.floor(Date.now() / 1000) + (9 * 60 * 60),
-          url: "/series/naruto-shippuden"
-        }
-      ]
-    };
+    console.error('Error fetching upcoming episodes from Jikan:', error);
+    return { episodes: [] };
   }
 }
 
@@ -1203,10 +1243,154 @@ export async function fetchTMDBDetails(type: 'tv' | 'movie', id: number | string
     });
     return response.data;
   } catch (error) {
-    console.error(`TMDB Fetch Error:`, error);
+    console.error('Error fetching TMDB details:', error);
     return null;
   }
 }
+
+export async function fetchRegionalSchedule(): Promise<ScheduleDay[]> {
+  await refreshDynamicConfig();
+  console.log('Fetching regional schedule from AniSchedule (RockinChaos)');
+  const dubUrl = 'https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/dub-schedule.json';
+  const subUrl = 'https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/sub-schedule.json';
+  
+  try {
+    const [availableSlugs, dubResp, subResp] = await Promise.all([
+      fetchAvailableSlugs(),
+      http.get(dubUrl),
+      http.get(subUrl)
+    ]);
+
+    const dubItems = (dubResp.data || []).map((item: any) => ({ ...item, language: 'Dub' }));
+    const subItems = (subResp.data || []).map((item: any) => ({ ...item, language: 'Sub' }));
+    
+    const allItems = [...dubItems, ...subItems];
+    const dayMap: { [key: string]: ScheduleItem[] } = {
+      'Monday': [], 'Tuesday': [], 'Wednesday': [], 'Thursday': [], 'Friday': [], 'Saturday': [], 'Sunday': []
+    };
+
+    allItems.forEach((item: any) => {
+      if (!item.episodeDate) return;
+      const slug = (item.media?.media?.title?.userPreferred || item.title || 'Unknown Anime')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+      // Only include if available on site
+      if (!availableSlugs.has(slug)) return;
+
+      const date = new Date(item.episodeDate);
+      const day = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Kolkata' });
+      
+      if (dayMap[day]) {
+        dayMap[day].push({
+          title: item.media?.media?.title?.userPreferred || item.title || 'Unknown Anime',
+          url: `/watch?slug=${slug}`,
+          time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }),
+          type: item.language || 'TV',
+          poster: item.media?.media?.coverImage?.extraLarge || item.media?.media?.coverImage?.medium || '',
+          description: item.media?.media?.description || '',
+          isNew: true
+        });
+      }
+    });
+
+    // Create ScheduleDay[] array
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    const today = new Date();
+    const todayIdx = (today.getDay() + 6) % 7; // 0-6 (Mon-Sun)
+    
+    const schedule: ScheduleDay[] = days.map((dayName, i) => {
+      const items = dayMap[dayName] || [];
+      items.sort((a, b) => a.time.localeCompare(b.time));
+      const date = new Date();
+      date.setDate(today.getDate() + (i - todayIdx));
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' });
+      
+      return {
+        day: `${shortDays[i]} ${dateStr}`,
+        count: items.length,
+        items: items,
+        isToday: i === todayIdx
+      };
+    });
+
+    const reordered = [...schedule.slice(todayIdx), ...schedule.slice(0, todayIdx)];
+    console.log(`Parsed ${allItems.length} items (after filtering) into ${reordered.length} days of schedule`);
+    return reordered;
+  } catch (error) {
+    console.error("Error fetching schedule from AniSchedule:", error);
+    return fetchJikanSchedule();
+  }
+}
+
+async function fetchJikanSchedule(): Promise<ScheduleDay[]> {
+  const targetUrl = 'https://api.jikan.moe/v4/schedules';
+  try {
+    const [availableSlugs, { data: response }] = await Promise.all([
+      fetchAvailableSlugs(),
+      http.get(targetUrl)
+    ]);
+    
+    const animeItems = response.data || [];
+    const dayMap: { [key: string]: ScheduleItem[] } = {
+      'Monday': [], 'Tuesday': [], 'Wednesday': [], 'Thursday': [], 'Friday': [], 'Saturday': [], 'Sunday': []
+    };
+
+    animeItems.forEach((item: any) => {
+      const slug = (item.title || 'Unknown Anime')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+      if (!availableSlugs.has(slug)) return;
+
+      const dayRaw = item.broadcast?.day || 'Other';
+      const day = dayRaw.endsWith('s') ? dayRaw.slice(0, -1) : dayRaw;
+      if (dayMap[day]) {
+        dayMap[day].push({
+          title: item.title,
+          url: `/watch?slug=${slug}`,
+          time: item.broadcast?.time || '--:--',
+          type: item.type || 'TV',
+          poster: item.images?.webp?.large_image_url || item.images?.jpg?.large_image_url || '',
+          description: item.synopsis || '',
+          isNew: false
+        });
+      }
+    });
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const today = new Date();
+    const todayIdx = (today.getDay() + 6) % 7;
+
+    const schedule: ScheduleDay[] = days.map((dayName, i) => {
+      const items = dayMap[dayName] || [];
+      const date = new Date();
+      date.setDate(today.getDate() + (i - todayIdx));
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' });
+      return {
+        day: `${shortDays[i]} ${dateStr}`,
+        count: items.length,
+        items,
+        isToday: i === todayIdx
+      };
+    });
+
+    return [...schedule.slice(todayIdx), ...schedule.slice(0, todayIdx)];
+  } catch (error) {
+    console.error('Error in fetchJikanSchedule fallback:', error);
+    return [];
+  }
+}
+
 
 export async function searchTMDB(query: string, type: 'tv' | 'movie' = 'tv'): Promise<TMDBDetails | null> {
   try {

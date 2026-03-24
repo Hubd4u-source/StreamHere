@@ -92,6 +92,11 @@ export const RANKS = [
   { name: 'Amai Overlord', minXP: 1000000, color: '#ffffff' } // White
 ];
 
+// Administrative Security
+export const ADMIN_UIDS = [
+  'sf1MEwZ8KOME15feZVZ5j7Fajr13', // User: sf1MEwZ8KOME15feZVZ5j7Fajr13
+];
+
 class UserDataService {
   private getUserDocRef(uid: string) {
     return doc(db, 'users', uid);
@@ -601,7 +606,6 @@ class UserDataService {
     }
   }
 
-  // Statistics
   async getUserStats(uid: string) {
     const [profile, watchHistory, myList] = await Promise.all([
       this.getUserProfile(uid),
@@ -624,6 +628,23 @@ class UserDataService {
       completedCount: myList.filter(item => item.status === 'completed').length,
       planToWatchCount: myList.filter(item => item.status === 'plan-to-watch').length
     };
+  }
+
+  // Admin Security Helpers
+  public isAdmin(uid: string | undefined): boolean {
+    if (!uid) return false;
+    return ADMIN_UIDS.includes(uid);
+  }
+
+  async getAllUsersCount(): Promise<number> {
+    try {
+      const usersRef = collection(db, 'users');
+      const snapshot = await getDocs(usersRef);
+      return snapshot.size;
+    } catch (e) {
+      console.error('Error fetching user count:', e);
+      return 0;
+    }
   }
 }
 

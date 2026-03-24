@@ -2,9 +2,11 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useMemo } from "react";
-import { HomeIcon, MagnifyingGlassIcon, TvIcon, FilmIcon, SwatchIcon, Square3Stack3DIcon, TrophyIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, MagnifyingGlassIcon, TvIcon, FilmIcon, SwatchIcon, Square3Stack3DIcon, TrophyIcon, CalendarDaysIcon, ClockIcon } from "@heroicons/react/24/outline";
 
-type RoutePath = "/" | "/search" | "/series" | "/movies" | "/anime" | "/cartoon" | "/leaderboard";
+import { useSettings } from "@/contexts/SettingsContext";
+
+type RoutePath = "/" | "/search" | "/series" | "/movies" | "/anime" | "/cartoon" | "/leaderboard" | "/schedule" | "/upcoming";
 type Item = { label: string; href: RoutePath; icon: (active: boolean) => JSX.Element };
 
 function HomeIconComponent(active: boolean) {
@@ -31,17 +33,41 @@ function CartoonIconComponent(active: boolean) {
   return <Square3Stack3DIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} />;
 }
 
+function ScheduleIconComponent(active: boolean) {
+  return <CalendarDaysIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} />;
+}
+
+function UpcomingIconComponent(active: boolean) {
+  return <ClockIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} />;
+}
+
 export default function DesktopNav() {
   const pathname = usePathname();
-  const items: Item[] = useMemo(() => ([
-    { label: "Home", href: "/", icon: HomeIconComponent },
-    { label: "Search", href: "/search", icon: SearchIconComponent },
-    { label: "Series", href: "/series", icon: SeriesIconComponent },
-    { label: "Movies", href: "/movies", icon: MoviesIconComponent },
-    { label: "Anime", href: "/anime", icon: AnimeIconComponent },
-    { label: "Cartoon", href: "/cartoon", icon: CartoonIconComponent },
-    { label: "Ranks", href: "/leaderboard", icon: (active: boolean) => <TrophyIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} /> },
-  ]), []);
+  const { settings } = useSettings();
+
+  const items: Item[] = useMemo(() => {
+    const baseItems: Item[] = [
+      { label: "Home", href: "/", icon: HomeIconComponent },
+      { label: "Search", href: "/search", icon: SearchIconComponent },
+      { label: "Series", href: "/series", icon: SeriesIconComponent },
+      { label: "Movies", href: "/movies", icon: MoviesIconComponent },
+      { label: "Anime", href: "/anime", icon: AnimeIconComponent },
+      { label: "Cartoon", href: "/cartoon", icon: CartoonIconComponent },
+    ];
+
+    if (settings) {
+      if (!settings.hide_schedule) {
+        baseItems.push({ label: "Schedule", href: "/schedule", icon: ScheduleIconComponent });
+      }
+      if (!settings.hide_upcoming) {
+        baseItems.push({ label: "Upcoming", href: "/upcoming", icon: UpcomingIconComponent });
+      }
+    }
+
+    baseItems.push({ label: "Ranks", href: "/leaderboard", icon: (active: boolean) => <TrophyIcon className={(active ? "text-accent" : "text-content-secondary") + " h-5 w-5 transition-colors duration-200"} /> });
+    
+    return baseItems;
+  }, [settings]);
 
   return (
     <nav className="hidden md:block fixed bottom-0 inset-x-0 z-50 bg-bg-surface border-t border-border-subtle safe-area-bottom">

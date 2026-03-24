@@ -55,6 +55,9 @@ export default function UpcomingEpisodesGrid() {
   }, []);
 
   const formatCountdown = (timestamp: number) => {
+    if (!timestamp || timestamp === 0) {
+      return { timeText: 'TBA', isPast: false };
+    }
     const now = Math.floor(Date.now() / 1000);
     const diff = timestamp - now;
     const absDiff = Math.abs(diff);
@@ -78,7 +81,7 @@ export default function UpcomingEpisodesGrid() {
       <div className="overflow-x-auto pb-4 scrollbar-hide">
         <div className="flex gap-6 min-w-max">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="w-48 animate-pulse space-y-4">
+            <div key={i} className="w-48 space-y-4">
               <div className="aspect-[2/3] bg-bg-surface border border-border-subtle rounded-2xl"></div>
               <div className="h-3 w-3/4 bg-bg-surface rounded-full mx-auto"></div>
             </div>
@@ -120,15 +123,15 @@ export default function UpcomingEpisodesGrid() {
             return (
               <div key={episode.id} className="w-48 group">
                 <AnimeLink seriesUrl={episode.url} className="block space-y-4">
-                  <div className="relative aspect-[2/3] bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden transition-all duration-500 group-hover:border-accent/40 group-hover:shadow-2xl group-hover:shadow-accent/5">
+                  <div className="relative aspect-[2/3] bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden group-hover:border-accent/40 group-hover:shadow-2xl group-hover:shadow-accent/5">
                     <img
                       src={imageSrc}
                       alt={episode.title}
-                      className="w-full h-full object-cover grayscale-[0.2] contrast-[1.1] transition-all duration-700 group-hover:grayscale-0"
+                      className="w-full h-full object-cover"
                     />
                     
                     {/* Dark Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-bg-base/90 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-bg-base/90 via-transparent to-transparent opacity-60" />
 
                     {/* Badge: Episode */}
                     <div className="absolute bottom-3 left-3 px-2 py-1 bg-bg-surface/90 border border-border-subtle rounded-md backdrop-blur-sm">
@@ -136,7 +139,7 @@ export default function UpcomingEpisodesGrid() {
                     </div>
 
                     {/* Badge: Timer */}
-                    <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border backdrop-blur-md shadow-lg transition-all duration-500 ${
+                    <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border backdrop-blur-md shadow-lg ${
                       isPast 
                         ? 'bg-red-500/20 border-red-500/50 text-red-200' 
                         : 'bg-accent/10 border-accent/30 text-accent group-hover:bg-accent group-hover:text-bg-base'
@@ -145,7 +148,7 @@ export default function UpcomingEpisodesGrid() {
                     </div>
 
                     {/* Play Icon (Hover Only) */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
                       <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-bg-base shadow-2xl">
                         <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                       </div>
@@ -153,7 +156,7 @@ export default function UpcomingEpisodesGrid() {
                   </div>
 
                   <div className="text-center px-2">
-                    <h3 className="text-sm font-bold text-content-primary line-clamp-1 group-hover:text-accent transition-colors duration-300">
+                    <h3 className="text-sm font-bold text-content-primary line-clamp-1 group-hover:text-accent">
                       {episode.title}
                     </h3>
                     <p className="text-[10px] text-content-tertiary mt-1 font-medium uppercase tracking-[0.1em]">Coming Soon</p>
@@ -168,7 +171,7 @@ export default function UpcomingEpisodesGrid() {
       <div className="text-center">
         <a
           href="/upcoming"
-          className="btn-outline px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/40 transition-all inline-flex items-center gap-2"
+          className="btn-outline px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/40 inline-flex items-center gap-2"
         >
           <span>View Schedule</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>

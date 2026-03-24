@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-export default function UpcomingPage() {
+export default function SchedulePage() {
   redirect('/');
   return null;
 }

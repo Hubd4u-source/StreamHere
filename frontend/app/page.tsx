@@ -10,10 +10,14 @@ import ContinueWatchingHome from "@/components/ContinueWatchingHome";
 import RecentlyWatchedHome from "@/components/RecentlyWatchedHome";
 import HeroBanner from "@/components/HeroBanner";
 import { getFeaturedAnime } from "@/server/featured";
+import { settingsService } from "@/lib/settingsService";
 
 export default async function HomePage() {
   // Fetch featured items for hero
   const featuredItems = await getFeaturedAnime();
+
+  // Fetch dynamic settings
+  const settings = await settingsService.getSettings();
 
   // Fetch trending anime
   const trendingData = await fetchAnimeList(1);
@@ -73,19 +77,21 @@ export default async function HomePage() {
         </section>
 
         {/* Upcoming Episodes Section */}
-        <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div className="space-y-2">
-              <h2 className="section-heading text-3xl md:text-4xl">Upcoming Episodes</h2>
-              <p className="section-subtitle text-lg">Coming soon with real-time countdowns</p>
+        {!settings.hide_upcoming && (
+          <section>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+              <div className="space-y-2">
+                <h2 className="section-heading text-3xl md:text-4xl">Upcoming Episodes</h2>
+                <p className="section-subtitle text-lg">Coming soon with real-time countdowns</p>
+              </div>
+              <a href="/upcoming" className="btn-outline px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/20 transition-all">
+                Schedule
+              </a>
             </div>
-            <a href="/upcoming" className="btn-outline px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/20 transition-all">
-              Schedule
-            </a>
-          </div>
 
-          <UpcomingEpisodesGrid />
-        </section>
+            <UpcomingEpisodesGrid />
+          </section>
+        )}
 
         {/* Trending Now */}
         <section>

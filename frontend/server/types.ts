@@ -3,6 +3,7 @@ export interface EpisodeItem {
   title?: string | null;
   url: string;
   poster?: string | null;
+  players?: PlayerSourceItem[];
 }
 
 export interface RegionalLanguageInfo {
@@ -21,6 +22,8 @@ export interface SeasonItem {
 
 export interface AnimeDetailsResponse {
   url: string;
+  title: string;
+  image?: string | null;
   postId: number;
   season?: number | null;
   seasons: SeasonItem[];
@@ -70,4 +73,29 @@ export interface TMDBDetails {
   genres: { id: number; name: string }[];
   vote_average: number;
   number_of_episodes?: number;
+}
+
+export interface ScheduleItem {
+  title: string;
+  url: string;
+  time: string;
+  type: string;
+  poster: string;
+  description: string;
+  isNew?: boolean;
+}
+
+export interface ScheduleDay {
+  day: string;
+  count: number;
+  items: ScheduleItem[];
+  isToday?: boolean;
+}
+
+export interface UpcomingItem {
+  title: string;
+  poster: string;
+  countdown?: string;
+  url: string;
+  id?: string;
 }
