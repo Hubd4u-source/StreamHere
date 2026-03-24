@@ -7,10 +7,19 @@ export default function Footer() {
       {/* Ambient background glow */}
       <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[300px] h-20 bg-accent/5 blur-3xl rounded-full pointer-events-none"></div>
 
-      <div className="py-10 text-center relative z-10">
+      <div className="py-10 text-center relative z-10 px-4 space-y-4">
         <p className="text-content-secondary text-[13px] font-medium tracking-wide">
           &copy; <span className="text-accent font-bold">2026</span> AMAI TV India. All Rights Reserved.
         </p>
+        <div className="max-w-2xl mx-auto space-y-2">
+          <p className="text-[10px] text-content-tertiary uppercase tracking-[0.2em] font-bold opacity-60">Legal Disclaimer</p>
+          <p className="text-[11px] text-content-tertiary leading-relaxed">
+            AMAI TV India does not store any files on its own server. We only index links from the internet which are hosted on third-party services. We index links just like Google.
+          </p>
+          <p className="text-[10px] text-content-tertiary/50">
+            We are not responsible for any activities conducted on third-party sites.
+          </p>
+        </div>
       </div>
       
       {/* Extra padding to prevent being hidden behind fixed bottom navigation bars (mobile & desktop) */}

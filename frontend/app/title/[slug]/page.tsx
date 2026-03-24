@@ -12,6 +12,53 @@ import Tabs, { TabPanel } from "@/components/Tabs";
 import RelatedSeriesCard from "@/components/RelatedSeriesCard";
 import { notFound, redirect } from "next/navigation";
 import { generateSlug } from "@/lib/utils";
+import { Metadata, ResolvingMetadata } from 'next';
+
+type Props = {
+  params: { slug: string };
+  searchParams: { season?: string };
+};
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { slug } = params;
+  const selectedSeason = searchParams?.season ? Number(searchParams?.season) : 1;
+  
+  const animeInfo = await findAnimeBySlug(slug);
+  if (!animeInfo) return {};
+
+  const data = await fetchAnimeDetails({ 
+    url: animeInfo.url, 
+    postId: animeInfo.postId || 0, 
+    season: selectedSeason 
+  });
+
+  if (!data) return {};
+
+  const title = data.title || decodeURIComponent(data.url.split('/').filter(Boolean).pop() || slug);
+  const description = data.synopsis ? 
+    data.synopsis.slice(0, 160) + "..." : 
+    `Watch ${title} Online in High Quality on AMAI TV. Free streaming of anime series and movies.`;
+
+  return {
+    title: `Watch ${title} Online in HD - AMAI TV`,
+    description: description,
+    openGraph: {
+      title: `Watch ${title} Online - AMAI TV`,
+      description: description,
+      images: data.poster ? [data.poster] : [],
+      type: 'video.tv_show',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Watch ${title} Online - AMAI TV`,
+      description: description,
+      images: data.poster ? [data.poster] : [],
+    },
+  };
+}
 
 type EpisodeItem = { number?: string | null; title?: string | null; url: string };
 type SeasonItem = { season: number | string; label: string; nonRegional: boolean };

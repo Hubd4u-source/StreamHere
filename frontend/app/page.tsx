@@ -216,6 +216,22 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+        {/* Legal Notice Section */}
+        <section className="border-t border-border-subtle/30 pt-16 pb-8">
+          <div className="max-w-4xl mx-auto text-center space-y-6 px-4">
+             <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/20 rounded-full">
+                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+                <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Legal Notice</span>
+             </div>
+             <h3 className="text-xl md:text-2xl font-bold text-white">Disclaimer of Liability</h3>
+             <p className="text-content-secondary text-sm md:text-base leading-relaxed italic">
+               &quot;Amai Tv India does not store any files on its own server. We only index links from the internet which are hosted on third-party services. We index links just like Google. We are not responsible for any activities conducted on this site or external platforms.&quot;
+             </p>
+             <div className="pt-4">
+                <a href="/dmca" className="text-accent hover:underline text-xs font-medium uppercase tracking-widest">Read Full DMCA Policy</a>
+             </div>
+          </div>
+        </section>
       </main>
 
       <NewBottomNav />

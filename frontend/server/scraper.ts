@@ -233,11 +233,17 @@ export function parseAnimeListFromHtml(html: string): SeriesListItem[] {
   return items;
 }
 
-export async function fetchAnimeList(page: number): Promise<AnimeListResponse> {
+export async function fetchAnimeList(page: number, type: string = 'series'): Promise<AnimeListResponse> {
   await refreshDynamicConfig();
-  console.log(`fetchAnimeList called with page: ${page}`);
+  console.log(`fetchAnimeList called with page: ${page}, type: ${type}`);
 
-  const payload = new URLSearchParams({ action: 'torofilm_infinite_scroll', page: String(page), per_page: '12', query_type: 'archive', post_type: 'series' });
+  const payload = new URLSearchParams({ 
+    action: 'torofilm_infinite_scroll', 
+    page: String(page), 
+    per_page: '12', 
+    query_type: 'archive', 
+    post_type: type 
+  });
   let items: SeriesListItem[] = [];
 
   try {

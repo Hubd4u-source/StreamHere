@@ -19,25 +19,31 @@ export async function GET(req: Request) {
     for (const type of types) {
       console.log(`[Cron] Starting sync for type: ${type}`);
       // Fetch Page 1 only for the cron job to keep it lightweight
-      const items = await fetchAnimeList(1, type);
+      const response = await fetchAnimeList(1, type);
+      const items = response.items || [];
       
       // Limit to first 10 items to stay within serverless timeout
       const slice = items.slice(0, 10);
       
       for (const item of slice) {
+        const itemSlug = item.url.split('/').filter(Boolean).pop() || '';
         try {
           // Perform shallow sync (metadata + 1st episode check)
-          const details = await fetchAnimeDetails(item.url, false);
+          const details = await fetchAnimeDetails({ 
+            url: item.url, 
+            postId: item.postId || 0, 
+            includePlayers: false 
+          });
           if (details) {
-            await animeCacheService.saveAnime(item.id, {
+            await animeCacheService.saveAnime(itemSlug, {
               ...details,
-              id: item.id,
+              id: itemSlug,
               lastFetched: Date.now()
             });
             totalSynced++;
           }
         } catch (itemErr) {
-          console.error(`[Cron] Failed to sync ${item.id}:`, itemErr);
+          console.error(`[Cron] Failed to sync ${itemSlug}:`, itemErr);
         }
       }
     }

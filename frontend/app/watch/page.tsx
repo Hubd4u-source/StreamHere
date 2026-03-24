@@ -9,6 +9,43 @@ import SeasonSelector from "@/components/SeasonSelector";
 import EpisodeCard from "@/components/EpisodeCard";
 import EpisodesList from "@/components/EpisodesList";
 import { generateSlug } from "@/lib/utils";
+import { Metadata, ResolvingMetadata } from 'next';
+
+type Props = {
+  searchParams: { episode?: string; url?: string; post_id?: string; season?: string; server?: string };
+};
+
+export async function generateMetadata(
+  { searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const episodeParam = searchParams?.episode || "";
+  const seriesUrlParam = searchParams?.url || "";
+  
+  if (!episodeParam) return {};
+
+  const decoded = decodeURIComponent(episodeParam).trim();
+  const isMovie = decoded.includes('/movies/') || (seriesUrlParam && seriesUrlParam.startsWith('/movies/'));
+  
+  const seriesTitle = seriesUrlParam ? 
+    decodeURIComponent(seriesUrlParam.split('/').filter(Boolean).pop() || '').replace(/-/g, ' ') : 
+    (decoded.includes('/episode/') ? decoded.split('/episode/')[1]?.split('/')[0]?.replace(/-\d+x\d+$/i, '').replace(/-/g, ' ') : '');
+
+  const episodeTitle = isMovie ? 'Full Movie' : (decoded.includes('-') ? `Episode ${decoded.split('-').pop()}` : 'Episode');
+
+  const title = isMovie ? 
+    `Watch ${seriesTitle} Full Movie Online - AMAI TV` : 
+    `Watch ${seriesTitle} ${episodeTitle} Online - AMAI TV`;
+
+  return {
+    title: title,
+    description: `Stream ${seriesTitle} ${episodeTitle} in High Quality on AMAI TV. Fast and free anime streaming experience.`,
+    openGraph: {
+      title: title,
+      type: 'video.episode',
+    }
+  };
+}
 
 type PlayerSourceItem = { src: string; kind: 'iframe' | 'video'; label?: string | null; quality?: string | null };
 

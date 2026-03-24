@@ -12,6 +12,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "AMAI TV - Watch Anime Online",
   description: "Stream your favorite anime series and movies on AMAI TV. High quality, fast streaming experience.",
+  verification: {
+    google: "FzT9B60wUVMnAUfsQJ6P4Yhi0R0Uqt4uXJgyZyyQAeI",
+  },
+  metadataBase: new URL("https://amaitv.vercel.app"), // Replace with your actual domain
 };
 
 export default function RootLayout({
