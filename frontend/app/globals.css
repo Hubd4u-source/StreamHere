@@ -521,3 +521,109 @@
 .hero-content {
   will-change: opacity, transform, filter;
 }
+
+/* Hero Spotlight Aesthetics Refinement */
+.hero-spotlight-tag {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fb923c; /* Light Orange */
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+}
+
+.hero-title {
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem !important;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem !important;
+}
+
+.hero-meta-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+}
+
+.hero-meta-rating {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.hero-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hero-genre-tag {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.9);
+  transition: all 0.3s ease;
+}
+
+.hero-genre-tag:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.hero-description {
+  color: rgba(255,255,255,0.8) !important;
+  max-width: 600px !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 2rem !important;
+}
+
+.hero-btn-primary {
+  background: #ea580c !important; /* Deep Orange */
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+  transition: all 0.3s ease !important;
+}
+
+.hero-btn-primary:hover {
+  background: #f97316 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6);
+}
+
+.hero-btn-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Gold Watch Now Button */
+.hero-btn-primary {
+  background: #f59e0b !important; /* Golden Amber */
+  color: #000 !important; /* Black text for better contrast on gold */
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.hero-btn-primary:hover {
+  background: #fbbf24 !important; /* Lighter Gold */
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+}
+
+.hero-btn-primary svg {
+  fill: #000;
+}

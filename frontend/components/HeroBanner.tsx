@@ -126,7 +126,12 @@ export default function HeroBanner({ initialItems }: HeroBannerProps) {
             fill
             priority={i === 0}
             sizes="100vw"
-            style={{ objectFit: "cover", objectPosition: "center 20%" }}
+            style={{ 
+              objectFit: "cover", 
+              objectPosition: "center 20%",
+              transform: `translateY(${scrollProgress * 80}px) scale(${1 + scrollProgress * 0.1})`,
+              filter: `brightness(${1 - scrollProgress * 0.5})`
+            }}
           />
         </div>
       ))}
@@ -145,23 +150,21 @@ export default function HeroBanner({ initialItems }: HeroBannerProps) {
         }}
       >
 
-        {/* Badge */}
-        {item.badge && (
-          <span className="hero-badge">{item.badge}</span>
-        )}
+        {/* Spotlight Counter */}
+        <div className="hero-spotlight-tag">#{current + 1} Spotlight</div>
 
         {/* Title */}
         <h1 className="hero-title">{item.title}</h1>
 
         {/* Meta row */}
         <div className="hero-meta">
-          <span className="hero-meta-item">{item.year}</span>
-          {item.episodeCount && (
+          <div className="hero-meta-group">
+            <span className="hero-meta-item">{item.year}</span>
+            <span className="hero-meta-divider">|</span>
             <span className="hero-meta-item">{item.episodeCount} Episodes</span>
-          )}
-          {item.rating && (
-            <span className="hero-meta-item hero-meta-rating">{item.rating}</span>
-          )}
+            <span className="hero-meta-divider">|</span>
+            <span className="hero-meta-item hero-meta-rating">{item.rating || "8.5"}</span>
+          </div>
           <div className="hero-genres">
             {item.genres.map(g => (
               <span key={g} className="hero-genre-tag">{g}</span>
