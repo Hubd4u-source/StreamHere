@@ -1192,3 +1192,34 @@ export async function fetchUpcomingEpisodes(): Promise<{
     };
   }
 }
+
+const TMDB_API_KEY = '3e95dc9b1d4baa2f4dd99d97c99fb225';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+
+export async function fetchTMDBDetails(type: 'tv' | 'movie', id: number | string): Promise<TMDBDetails | null> {
+  try {
+    const response = await http.get(`${TMDB_BASE}/${type}/${id}`, {
+      params: { api_key: TMDB_API_KEY, append_to_response: 'images' }
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`TMDB Fetch Error:`, error);
+    return null;
+  }
+}
+
+export async function searchTMDB(query: string, type: 'tv' | 'movie' = 'tv'): Promise<TMDBDetails | null> {
+  try {
+    const response = await http.get(`${TMDB_BASE}/search/${type}`, {
+      params: { api_key: TMDB_API_KEY, query }
+    });
+    if (response.data.results && response.data.results.length > 0) {
+      // Search doesn't return full details, fetch by ID
+      return fetchTMDBDetails(type, response.data.results[0].id);
+    }
+    return null;
+  } catch (error) {
+    console.error(`TMDB Search Error:`, error);
+    return null;
+  }
+}

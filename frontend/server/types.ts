@@ -57,3 +57,17 @@ export interface AnimeListResponse {
   items: SeriesListItem[];
 }
 
+
+export interface TMDBDetails {
+  id: number;
+  name?: string;
+  title?: string;
+  overview: string;
+  backdrop_path: string | null;
+  poster_path: string | null;
+  first_air_date?: string;
+  release_date?: string;
+  genres: { id: number; name: string }[];
+  vote_average: number;
+  number_of_episodes?: number;
+}

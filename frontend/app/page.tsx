@@ -8,6 +8,7 @@ import OngoingSeriesGrid from "@/components/OngoingSeriesGrid";
 import UpcomingEpisodesGrid from "@/components/UpcomingEpisodesGrid";
 import ContinueWatchingHome from "@/components/ContinueWatchingHome";
 import RecentlyWatchedHome from "@/components/RecentlyWatchedHome";
+import HeroBanner from "@/components/HeroBanner";
 
 export default async function HomePage() {
   // Fetch trending anime
@@ -30,107 +31,27 @@ export default async function HomePage() {
   const cartoonsData = await fetchCartoonList(1);
   const cartoonsList = cartoonsData.items?.slice(0, 10) || [];
 
-  // Franchise logos (used in carousel)
-  const FRANCHISE_BASE = (process.env.NEXT_PUBLIC_FRANCHISE_BASE || 'https://rareanimes.app').replace(/\/+$/, '');
-
-  const franchises = [
-    { name: 'Iron Man', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Ironman.png` },
-    { name: 'Slugterra', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Slugterra.png` },
-    { name: 'Miraculous', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Miraclous.png` },
-    { name: 'Transformers', img: `${FRANCHISE_BASE}/wp-content/uploads/2025/04/Transformers.png` },
-    { name: 'Naruto', img: `${FRANCHISE_BASE}/wp-content/uploads/2025/04/Naruto.png` },
-    { name: 'Spider Man', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Spiderman.png` },
-    { name: 'Pokemon', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Pokemon.png` },
-    { name: 'Shin Chan', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Shinchan.png` },
-    { name: 'Doraemon', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Doraemon.png` },
-    { name: 'Beyblade', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Beyblade.png` },
-    { name: 'Ben 10', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Ben-10.png` },
-    { name: 'Dragon Ball', img: `${FRANCHISE_BASE}/wp-content/uploads/2021/08/Dragonball.png` },
-  ];
-
   return (
     <div className="min-h-screen bg-bg-base text-content-primary font-sans selection:bg-accent/30 selection:text-accent">
       <NewNavbar />
 
-      <main className="w-full px-4 md:px-8 pb-32 space-y-24 pt-8">
-        {/* Continue Watching */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <ContinueWatchingHome />
-        </div>
+      <main className="w-full pb-32 space-y-24">
+        {/* Hero Banner Section */}
+        <HeroBanner />
 
-        {/* Franchises */}
-        <section>
-          <NewCarousel title="Franchises" subtitle="Tap a logo to discover the full collection" autoplay loop autoplayIntervalMs={3000}>
-            {[...franchises, ...franchises].map(({ name, img }, idx) => (
-              <a
-                key={`${name}-${idx}`}
-                href={`/search?q=${encodeURIComponent(name)}`}
-                className="group flex-shrink-0 w-48 h-[240px] bg-bg-surface border border-border-subtle rounded-[32px] p-6 transition-all duration-500 hover:border-accent/40 hover:bg-bg-elevated hover:shadow-2xl hover:shadow-accent/5"
-                title={`Search ${name}`}
-              >
-                <div className="h-[140px] flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110">
-                  <img
-                    src={`/api/image?src=${encodeURIComponent(img)}`}
-                    alt={name}
-                    className="max-h-full max-w-full object-contain filter drop-shadow-2xl"
-                  />
-                </div>
-                <div className="text-center space-y-1">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent leading-tight">{name}</div>
-                  <div className="text-[14px] font-serif text-content-secondary leading-tight truncate">{name} Collection</div>
-                </div>
-              </a>
-            ))}
-          </NewCarousel>
-        </section>
-
-        {/* Recently Watched */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <RecentlyWatchedHome />
-        </div>
-
-        {/* Networks Section */}
-        <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div className="space-y-2">
-              <h2 className="section-heading text-3xl md:text-4xl">Networks</h2>
-              <p className="section-subtitle text-lg">Watch content from your favorite platforms</p>
-            </div>
-            <a href="/networks" className="btn-outline px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/20 transition-all">
-              View All
-            </a>
+        <div className="px-4 md:px-8 space-y-24">
+          {/* Continue Watching */}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <ContinueWatchingHome />
           </div>
 
-          <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4">
-            {[
-              { id: 'crunchyroll', name: 'Crunchyroll', img: "/wp-content/uploads/crunchyroll-193x193.png" },
-              { id: 'disney', name: 'Disney+', img: "/wp-content/uploads/hotstar-193x193.png" },
-              { id: 'netflix', name: 'Netflix', img: "/wp-content/uploads/netflix-193x193.png" },
-              { id: 'prime-video', name: 'Prime', img: "/wp-content/uploads/primevideo-193x193.png" },
-              { id: 'cartoon-network', name: 'CN', img: "/wp-content/uploads/cartoonnetwork-193x193.png" },
-              { id: 'sony-yay', name: 'Sony Yay', img: "/wp-content/uploads/sonyay-193x193.png" },
-              { id: 'hungama-tv', name: 'Hungama', img: "/wp-content/uploads/hungama-193x193.png" },
-              { id: 'disney-channel', name: 'Disney CH', img: "/wp-content/uploads/disney-193x193.png" },
-            ].map((net) => (
-              <a 
-                key={net.id}
-                href={`/networks/${net.id}`} 
-                className="group flex flex-col items-center gap-3 transition-all duration-300"
-              >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-bg-surface border border-border-subtle rounded-full flex items-center justify-center transition-all duration-500 group-hover:bg-bg-elevated group-hover:border-accent/30 group-hover:shadow-xl group-hover:shadow-accent/5">
-                  <img
-                    src={`/api/image?src=${encodeURIComponent(net.img)}`}
-                    alt={net.name}
-                    className="max-w-[50%] max-h-[50%] object-contain opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
-                  />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-content-tertiary group-hover:text-accent transition-colors">
-                  {net.name}
-                </span>
-              </a>
-            ))}
+          {/* Recently Watched */}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <RecentlyWatchedHome />
           </div>
-        </section>
+        </div>
+
+
 
         {/* Ongoing Series Section */}
         <section>
