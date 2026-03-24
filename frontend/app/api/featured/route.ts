@@ -14,19 +14,22 @@ export async function GET() {
       return NextResponse.json({ items: [] });
     }
 
-    // 2. Enhance with TMDB data
-    const heroItems: HeroItem[] = await Promise.all(
+    // 2. Enhance with TMDB data, strictly filtering for valid scraper items
+    const heroItems: HeroItem[] = (await Promise.all(
       popularItems.map(async (item) => {
+        if (!item.title || !item.url) return null;
+        
         const slug = item.url.split('/').filter(Boolean).pop() || '';
-        const tmdb = await searchTMDB(item.title || '', 'tv');
+        const tmdb = await searchTMDB(item.title, 'tv');
 
+        // Only return if we have a title (fallback to scraper title)
         return {
           id: slug,
-          title: tmdb?.name || item.title || 'Untitled Anime',
+          title: tmdb?.name || item.title,
           slug: slug,
           backdropUrl: tmdb?.backdrop_path 
             ? `https://image.tmdb.org/t/p/original${tmdb.backdrop_path}` 
-            : 'https://images.unsplash.com/photo-1578632738980-307137ce8706?q=80&w=2000', // Better fallback
+            : 'https://images.unsplash.com/photo-1578632738980-307137ce8706?q=80&w=2000',
           posterUrl: tmdb?.poster_path 
             ? `https://image.tmdb.org/t/p/w342${tmdb.poster_path}` 
             : item.image || '',
@@ -42,7 +45,7 @@ export async function GET() {
           rating: tmdb?.vote_average ? tmdb.vote_average.toFixed(1) : undefined
         };
       })
-    );
+    )).filter((item): item is HeroItem => item !== null);
 
     return NextResponse.json(heroItems);
   } catch (error) {

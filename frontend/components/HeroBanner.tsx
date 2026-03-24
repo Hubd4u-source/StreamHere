@@ -44,14 +44,14 @@ export default function HeroBanner() {
 
   // Auto-advance timer
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || items.length === 0) return;
 
     const timer = setTimeout(() => {
       goNext();
     }, AUTO_ADVANCE_MS);
 
     return () => clearTimeout(timer);
-  }, [current, isPaused, goNext]);
+  }, [current, isPaused, goNext, items.length]);
 
   // Touch handlers
   const touchStartX = useRef<number>(0)
@@ -68,10 +68,12 @@ export default function HeroBanner() {
     const delta = touchStartX.current - touchEndX.current
     if (Math.abs(delta) < 50) return
     if (delta > 0) goNext()
-    else goTo((current - 1 + heroFeatured.length) % heroFeatured.length)
+    else goTo((current - 1 + items.length) % items.length)
   }
 
-  const item = heroFeatured[current]
+  if (items.length === 0) return null;
+
+  const item = items[current]
 
   return (
     <section 
