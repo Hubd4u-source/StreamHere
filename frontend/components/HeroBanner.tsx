@@ -12,7 +12,33 @@ export default function HeroBanner() {
   const [prev, setPrev] = useState<number | null>(null)
   const [transitioning, setTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  const goTo = useCallback((index: number) => {
+    if (index === current || transitioning) return
+    setPrev(current)
+    setTransitioning(true)
+    setCurrent(index)
+    setTimeout(() => {
+      setPrev(null)
+      setTransitioning(false)
+    }, 700)   // match CSS transition duration
+  }, [current, transitioning])
+
+  const goNext = useCallback(() => {
+    const nextIndex = (current + 1) % heroFeatured.length
+    goTo(nextIndex)
+  }, [current, goTo])
+
+  // Auto-advance timer
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setTimeout(() => {
+      goNext();
+    }, AUTO_ADVANCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [current, isPaused, goNext]);
 
   // Touch handlers
   const touchStartX = useRef<number>(0)
@@ -27,39 +53,10 @@ export default function HeroBanner() {
     setIsPaused(false)
     touchEndX.current = e.changedTouches[0].screenX
     const delta = touchStartX.current - touchEndX.current
-    if (Math.abs(delta) < 50) return    // ignore small movements
-    if (delta > 0) {
-      goTo((current + 1) % heroFeatured.length)   // swipe left → next
-    } else {
-      goTo((current - 1 + heroFeatured.length) % heroFeatured.length)  // swipe right → prev
-    }
+    if (Math.abs(delta) < 50) return
+    if (delta > 0) goNext()
+    else goTo((current - 1 + heroFeatured.length) % heroFeatured.length)
   }
-
-  const goTo = useCallback((index: number) => {
-    if (index === current || transitioning) return
-    setPrev(current)
-    setTransitioning(true)
-    setCurrent(index)
-    setTimeout(() => {
-      setPrev(null)
-      setTransitioning(false)
-    }, 700)   // match CSS transition duration
-  }, [current, transitioning])
-
-  const goNext = useCallback(() => {
-    goTo((current + 1) % heroFeatured.length)
-  }, [current, goTo])
-
-  // Auto-advance
-  useEffect(() => {
-    if (isPaused) return;
-
-    const reducedMotion = typeof window !== 'undefined' ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
-    if (!reducedMotion) {
-      timerRef.current = setTimeout(goNext, AUTO_ADVANCE_MS)
-    }
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [current, goNext, isPaused])
 
   const item = heroFeatured[current]
 
