@@ -20,6 +20,7 @@ export interface CachedAnime {
   postId?: number | null;
   poster?: string | null;
   players?: any[];
+  genres?: string[];
 }
 
 const CACHE_COLLECTION = 'animes';

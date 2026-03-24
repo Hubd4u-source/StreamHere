@@ -39,6 +39,7 @@ export interface AnimeDetailsResponse {
   players?: PlayerSourceItem[];
   related?: { url: string; title?: string | null; poster?: string | null; genres?: string[]; postId?: number }[];
   smartButtons?: { url: string; actionText: string; episodeText: string; buttonClass: string }[];
+  rating?: number | null;
 }
 
 export interface PlayerSourceItem {

@@ -417,7 +417,11 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
             episodes: cached.episodes || [],
             seasons: cached.seasons || [],
             url: cached.url || url,
-            postId: cached.postId || postId
+            postId: cached.postId || postId,
+            poster: cached.poster || cached.image,
+            rating: cached.rating,
+            year: cached.year,
+            genres: cached.genres as string[] || []
           } as AnimeDetailsResponse;
         }
       }
@@ -617,7 +621,11 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
       episodes: details.episodes,
       seasons: details.seasons,
       url: details.url,
-      postId: details.postId
+      postId: details.postId,
+      poster: details.poster,
+      rating: details.rating,
+      year: details.year,
+      genres: details.genres || []
     });
   }
 
