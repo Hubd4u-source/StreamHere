@@ -187,6 +187,36 @@ export default function AdminSyncPage() {
          </div>
       </header>
 
+       {/* PRESET BUTTONS */}
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <button 
+            onClick={() => setConfig({ startPage: 1, endPage: 10, type: 'all', deepSync: false, autoPagination: false })}
+            className="p-6 bg-bg-surface border border-border-subtle rounded-[2rem] hover:border-accent/40 transition-all text-left space-y-2 group"
+          >
+             <p className="font-black text-[10px] text-accent uppercase tracking-wider">Preset 1</p>
+             <p className="font-bold text-sm">⚡ Quick Discover</p>
+             <p className="text-[10px] text-content-tertiary">Sync first 10 pages of all categories (Metadata only).</p>
+          </button>
+          
+          <button 
+            onClick={() => setConfig({ ...config, type: 'all', autoPagination: true, deepSync: false })}
+            className="p-6 bg-bg-surface border border-border-subtle rounded-[2rem] hover:border-accent/40 transition-all text-left space-y-2 group"
+          >
+             <p className="font-black text-[10px] text-cyan-400 uppercase tracking-wider">Preset 2</p>
+             <p className="font-bold text-sm">📚 The Whole Library</p>
+             <p className="text-[10px] text-content-tertiary">Discover every single item on the site (Metadata only).</p>
+          </button>
+
+          <button 
+            onClick={() => setConfig({ ...config, type: 'all', autoPagination: true, deepSync: true })}
+            className="p-6 bg-bg-surface border border-border-subtle rounded-[2rem] hover:border-accent/40 transition-all text-left space-y-2 group"
+          >
+             <p className="font-black text-[10px] text-red-500 uppercase tracking-wider">Preset 3</p>
+             <p className="font-bold text-sm">🧬 Deep Archive</p>
+             <p className="text-[10px] text-content-tertiary">Metadata + Scrape every episode for players. (STALKER MODE)</p>
+          </button>
+       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
         <div className="md:col-span-12 lg:col-span-5 space-y-8">
            <div className="bg-bg-surface border border-border-subtle rounded-[2.5rem] p-8 shadow-xl shadow-black/40 space-y-8">
