@@ -80,6 +80,7 @@ type AnimeDetailsResponse = {
   related?: { url: string; title?: string | null; poster?: string | null; genres?: string[]; postId?: number }[];
   reviews?: { user?: string; stars?: number; comment?: string }[];
   smartButtons?: { url: string; actionText: string; episodeText: string; buttonClass: string }[];
+  synopsis?: string | null;
 };
 
 // Function to find anime by slug using search for efficiency and reliability
@@ -286,6 +287,30 @@ export default async function TitlePage({
 
       </main>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TVSeries",
+            "name": title,
+            "description": data.synopsis || `Watch ${title} online in high quality on AMAI TV.`,
+            "image": data.poster ? [data.poster] : [],
+            "genre": data.genres || [],
+            "startDate": data.year ? `${data.year}-01-01` : undefined,
+            "numberOfEpisodes": data.totalEpisodes || data.episodes?.length,
+            "author": data.studio ? { "@type": "Organization", "name": data.studio } : undefined,
+            "aggregateRating": data.rating ? {
+              "@type": "AggregateRating",
+              "ratingValue": data.rating,
+              "bestRating": "5",
+              "worstRating": "1",
+              "ratingCount": data.reviews?.length || 1
+            } : undefined
+          })
+        }}
+      />
+      
       <NewBottomNav />
       <DesktopNav />
     </div>

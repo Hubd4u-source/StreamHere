@@ -528,6 +528,24 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
         </section>
       </main>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TVEpisode",
+            "name": currentEpisode?.title || episodeTitle,
+            "episodeNumber": currentEpisode?.number || "1",
+            "partOfSeries": {
+              "@type": "TVSeries",
+              "name": seriesTitle
+            },
+            "image": currentEpisode?.poster || animeDetails?.poster || [],
+            "description": `Stream ${seriesTitle} ${currentEpisode?.title || episodeTitle} in High Quality on AMAI TV.`
+          })
+        }}
+      />
+
       <NewBottomNav />
       <DesktopNav />
     </div>
