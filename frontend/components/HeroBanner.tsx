@@ -7,14 +7,31 @@ import { heroFeatured, HeroItem } from "@/lib/heroData"
 
 const AUTO_ADVANCE_MS = 7000   // 7 seconds per slide
 
-export default function HeroBanner() {
-  const [items, setItems] = useState<HeroItem[]>(heroFeatured)
+interface HeroBannerProps {
+  initialItems?: HeroItem[];
+}
+
+export default function HeroBanner({ initialItems }: HeroBannerProps) {
+  const [items, setItems] = useState<HeroItem[]>(initialItems || heroFeatured)
   const [current, setCurrent] = useState(0)
   const [prev, setPrev] = useState<number | null>(null)
   const [transitioning, setTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
 
-  // Fetch dynamic featured items
+  // Scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      const bannerHeight = 600 // approximate threshold
+      const progress = Math.min(scrollY / bannerHeight, 1)
+      setScrollProgress(progress)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  // Fetch dynamic featured items in background
   useEffect(() => {
     fetch('/api/featured')
       .then(res => res.json())
@@ -83,7 +100,15 @@ export default function HeroBanner() {
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      style={{ 
+        transform: `scale(${1 + scrollProgress * 0.05})`,
+      }}
     >
+      {/* ── SCROLL OVERLAY ──────────────────────────── */}
+      <div 
+        className="hero-scroll-overlay"
+        style={{ opacity: scrollProgress }}
+      />
 
       {/* ── BACKDROP LAYERS ─────────────────────────── */}
       {items.map((slide, i) => (
@@ -111,7 +136,14 @@ export default function HeroBanner() {
       <div className="hero-gradient-bottom" aria-hidden="true" />
 
       {/* ── CONTENT ─────────────────────────────────── */}
-      <div className="hero-content">
+      <div 
+        className="hero-content"
+        style={{ 
+          opacity: 1 - scrollProgress * 1.5,
+          transform: `translateY(${scrollProgress * 100}px)`,
+          filter: `blur(${scrollProgress * 10}px)`
+        }}
+      >
 
         {/* Badge */}
         {item.badge && (

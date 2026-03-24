@@ -9,8 +9,12 @@ import UpcomingEpisodesGrid from "@/components/UpcomingEpisodesGrid";
 import ContinueWatchingHome from "@/components/ContinueWatchingHome";
 import RecentlyWatchedHome from "@/components/RecentlyWatchedHome";
 import HeroBanner from "@/components/HeroBanner";
+import { getFeaturedAnime } from "@/server/featured";
 
 export default async function HomePage() {
+  // Fetch featured items for hero
+  const featuredItems = await getFeaturedAnime();
+
   // Fetch trending anime
   const trendingData = await fetchAnimeList(1);
   const trendingAnime = trendingData.items?.slice(0, 10) || [];
@@ -37,7 +41,7 @@ export default async function HomePage() {
 
       <main className="w-full pb-32 space-y-24">
         {/* Hero Banner Section */}
-        <HeroBanner />
+        <HeroBanner initialItems={featuredItems} />
 
         <div className="px-4 md:px-8 space-y-24">
           {/* Continue Watching */}

@@ -503,3 +503,21 @@
 
   .hero-genres { display: none; }  /* too cluttered on small screens */
 }
+
+/* Hero Scroll Overlay Effect */
+.hero-scroll-overlay {
+  position: absolute;
+  inset: 0;
+  background: black;
+  pointer-events: none;
+  z-index: 15;
+  will-change: opacity;
+}
+
+.hero-banner {
+  will-change: transform;
+}
+
+.hero-content {
+  will-change: opacity, transform, filter;
+}
