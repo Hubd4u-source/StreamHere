@@ -21,6 +21,8 @@ export interface CachedAnime {
   poster?: string | null;
   players?: any[];
   genres?: string[];
+  updatedAt?: number;
+  createdAt?: number;
 }
 
 const CACHE_COLLECTION = 'animes';
