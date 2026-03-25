@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { UserProfile } from './auth/UserProfile';
 
 export default function NewNavbar() {
@@ -23,12 +24,17 @@ export default function NewNavbar() {
       <div className="max-w-[1280px] mx-auto px-12 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-              <span className="text-bg-base font-bold text-sm">A</span>
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-9 h-9 relative flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-accent/10 border border-accent/20 transition-transform group-hover:scale-110">
+              <Image
+                src="/android-chrome-192x192.png"
+                alt="AMAI TV"
+                fill
+                className="object-cover"
+              />
             </div>
-            <span className="text-xl font-extrabold text-content-primary transition-colors tracking-wide">
-              AMAI TV
+            <span className="text-2xl font-black text-content-primary tracking-tighter group-hover:text-accent transition-colors">
+              AMAI <span className="text-accent underline decoration-accent/30 underline-offset-4">TV</span>
             </span>
           </Link>
 
