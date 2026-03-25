@@ -9,6 +9,7 @@ export default function AdminSyncPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [lastError, setLastError] = useState<string | null>(null);
+  const [adminSecret, setAdminSecret] = useState('');
   const [config, setConfig] = useState({
     startPage: 1,
     endPage: 5,
@@ -59,7 +60,8 @@ export default function AdminSyncPage() {
               method: 'POST',
               headers: { 
                 'Content-Type': 'application/json',
-                'x-admin-uid': adminUid
+                'x-admin-uid': adminUid,
+                'Authorization': `Bearer ${adminSecret}`
               },
               body: JSON.stringify({ action: 'discover', page: p, type: currentType })
             });
@@ -91,7 +93,8 @@ export default function AdminSyncPage() {
                   headers: { 
                     'Content-Type': 'application/json',
                     'x-admin-uid': adminUid,
-                    'x-deep-sync': config.deepSync ? 'true' : 'false'
+                    'x-deep-sync': config.deepSync ? 'true' : 'false',
+                    'Authorization': `Bearer ${adminSecret}`
                   },
                   body: JSON.stringify({ action: 'import', slugs: [item], type: currentType })
                 });
@@ -158,7 +161,8 @@ export default function AdminSyncPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-admin-uid': adminUid
+          'x-admin-uid': adminUid,
+          'Authorization': `Bearer ${adminSecret}`
         },
         body: JSON.stringify({ action: 'clear' })
       });
@@ -219,6 +223,25 @@ export default function AdminSyncPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
         <div className="md:col-span-12 lg:col-span-5 space-y-8">
+           {/* SECURITY KEY */}
+           <div className="bg-bg-surface border border-border-subtle rounded-[2.5rem] p-8 shadow-xl shadow-black/40 space-y-4">
+              <div className="flex items-center justify-between">
+                 <p className="text-[10px] font-black text-content-tertiary uppercase tracking-widest">Administrative Access</p>
+                 <span className={`w-3 h-3 rounded-full ${adminSecret ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`} />
+              </div>
+              <div className="space-y-2">
+                 <label className="text-xs font-bold text-content-primary">Admin Secret Key</label>
+                 <input 
+                    type="password" 
+                    placeholder="Enter your CRON_SECRET..."
+                    value={adminSecret}
+                    onChange={e => setAdminSecret(e.target.value)}
+                    className="w-full px-5 py-4 bg-bg-elevated border border-border-subtle rounded-2xl font-mono focus:outline-none focus:border-accent text-sm"
+                 />
+                 <p className="text-[10px] text-content-tertiary italic">Required for bulk operations and database wipes.</p>
+              </div>
+           </div>
+
            <div className="bg-bg-surface border border-border-subtle rounded-[2.5rem] p-8 shadow-xl shadow-black/40 space-y-8">
               <div className="space-y-6">
                  <div className="grid grid-cols-2 gap-4">

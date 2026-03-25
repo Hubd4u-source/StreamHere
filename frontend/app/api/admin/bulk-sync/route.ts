@@ -3,17 +3,31 @@ import { fetchAnimeList, fetchAnimeDetails, fetchMoviesList, fetchCartoonList } 
 import { animeCacheService } from '@/lib/animeCacheService';
 import { userDataService } from '@/lib/userDataService';
 
-// Security: Verify Admin UID from header
+// Security: Verify Admin UID and Secret Key
 async function verifyAdmin(request: NextRequest) {
   const adminUid = request.headers.get('x-admin-uid');
+  const authHeader = request.headers.get('Authorization');
+  const expectedSecret = process.env.CRON_SECRET; // Using existing secret for simplicity
+
   if (!adminUid) return false;
-  return await userDataService.isAdmin(adminUid);
+  
+  // 1. Verify UID belongs to an admin
+  const isUidAdmin = await userDataService.isAdmin(adminUid);
+  if (!isUidAdmin) return false;
+
+  // 2. Verify Secret Key (if configured)
+  if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+    console.error('Security Alert: Attempted admin action with invalid Secret Key');
+    return false;
+  }
+
+  return true;
 }
 
 export async function POST(request: NextRequest) {
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized: Invalid Admin Credentials or Secret Key' }, { status: 401 });
   }
 
   const { action, page, slugs, type } = await request.json();
