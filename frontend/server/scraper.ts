@@ -623,8 +623,8 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
       url: details.url,
       postId: details.postId,
       poster: details.poster,
-      rating: details.rating,
-      year: details.year,
+      rating: details.rating ?? null,
+      year: details.year ?? null,
       genres: details.genres || []
     });
   }

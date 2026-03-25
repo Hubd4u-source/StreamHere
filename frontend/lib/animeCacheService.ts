@@ -47,22 +47,38 @@ class AnimeCacheService {
     }
   }
 
+  private sanitizeData(data: any): any {
+    const clean: any = {};
+    Object.keys(data).forEach(key => {
+      const val = data[key];
+      if (val === undefined) {
+        clean[key] = null;
+      } else if (val && typeof val === 'object' && !Array.isArray(val)) {
+        clean[key] = this.sanitizeData(val);
+      } else {
+        clean[key] = val;
+      }
+    });
+    return clean;
+  }
+
   async saveAnime(slug: string, data: Partial<CachedAnime>): Promise<void> {
     try {
       const docRef = this.getDocRef(slug);
       const docSnap = await getDoc(docRef);
       const now = Date.now();
+      const sanitized = this.sanitizeData(data);
       
       if (!docSnap.exists()) {
         await setDoc(docRef, { 
-          ...data, 
+          ...sanitized, 
           id: slug,
           lastFetched: now,
           createdAt: now
         });
       } else {
         await updateDoc(docRef, { 
-          ...data, 
+          ...sanitized, 
           lastFetched: now,
           updatedAt: now
         });
