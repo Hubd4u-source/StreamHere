@@ -24,18 +24,24 @@ export default function NewNavbar() {
       <div className="max-w-[1280px] mx-auto px-12 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-9 h-9 relative flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-accent/10 border border-accent/20 transition-transform group-hover:scale-110">
+          <Link href="/" className="flex items-center space-x-4 group">
+            <div className="w-10 h-10 relative flex-shrink-0 transition-transform group-hover:scale-105">
               <Image
-                src="/android-chrome-192x192.png"
+                src="/Logo.jpg"
                 alt="AMAI TV"
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             </div>
-            <span className="text-2xl font-black text-content-primary tracking-tighter group-hover:text-accent transition-colors">
-              AMAI <span className="text-accent underline decoration-accent/30 underline-offset-4">TV</span>
-            </span>
+            <div className="flex items-center space-x-3">
+              <span className="text-xl font-semibold text-[#F0EDE8] uppercase tracking-[0.15em] font-sans leading-none">
+                AMAI
+              </span>
+              <div className="w-[1px] h-4 bg-[#F0EDE8] opacity-20" />
+              <span className="text-[13px] font-light text-[#E8C97A] uppercase tracking-[0.2em] font-sans leading-none">
+                TV
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation - Removed to avoid "Double" nav (Now in DesktopNav bottom bar) */}
