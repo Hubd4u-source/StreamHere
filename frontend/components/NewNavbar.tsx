@@ -21,7 +21,7 @@ export default function NewNavbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-bg-surface border-b border-border-subtle h-16">
-      <div className="max-w-[1280px] mx-auto px-12 h-full">
+      <div className="w-full px-4 md:px-6 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-4 group">
