@@ -627,3 +627,11 @@
 .hero-btn-primary svg {
   fill: #000;
 }
+
+body {
+  background-image: url('/Background.png') !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
