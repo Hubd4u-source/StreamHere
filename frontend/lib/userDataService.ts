@@ -646,6 +646,54 @@ class UserDataService {
       return 0;
     }
   }
+
+  async seedLeaderboard(): Promise<void> {
+    const bots = [
+      { name: 'Amai Master', xp: 1250000, rank: 'Amai Overlord' },
+      { name: 'ZenithWatcher', xp: 550000, rank: 'Celestial' },
+      { name: 'GhostShogun', xp: 280000, rank: 'Mythic' },
+      { name: 'NeonSamurai', xp: 140000, rank: 'Legend' },
+      { name: 'MidnightOtaku', xp: 75000, rank: 'Anime Master' },
+      { name: 'DubLover99', xp: 45000, rank: 'Elite Watcher' },
+      { name: 'SubTitan', xp: 22000, rank: 'Otaku' },
+      { name: 'KawaiiCrusader', xp: 8000, rank: 'Watcher' },
+      { name: 'BakaBot', xp: 2500, rank: 'Apprentice' },
+      { name: 'NewbieSan', xp: 500, rank: 'Newbie' }
+    ];
+
+    console.log(`UserDataService: Seeding ${bots.length} system bots...`);
+    
+    for (const bot of bots) {
+      const botId = `bot_${bot.name.toLowerCase().replace(/\s+/g, '_')}`;
+      const userRef = this.getUserDocRef(botId);
+      
+      const botProfile: UserProfile = {
+        uid: botId,
+        email: `${botId}@amai.tv`,
+        displayName: bot.name,
+        photoURL: null,
+        createdAt: Date.now() - (Math.random() * 1000000000),
+        lastLoginAt: Date.now(),
+        stats: {
+          xp: bot.xp,
+          rank: bot.rank,
+          level: Math.floor(bot.xp / 1000) + 1,
+          totalMinutesWatched: Math.floor(bot.xp / 10),
+          episodesCompleted: Math.floor(bot.xp / 200)
+        },
+        preferences: { theme: 'dark', language: 'en', notifications: false },
+        tier: 'premium',
+        bio: 'Official Amai TV System Bot',
+        favoriteGenres: ['Action', 'Mystery', 'Sci-Fi'],
+        socialLinks: [],
+        bannerColor: '#f59e0b',
+        achievements: ['early_adopter', 'system_legend']
+      };
+
+      await setDoc(userRef, botProfile);
+    }
+    console.log('UserDataService: Seeding complete.');
+  }
 }
 
 export const userDataService = new UserDataService();

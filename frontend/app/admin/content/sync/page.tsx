@@ -325,6 +325,37 @@ export default function AdminSyncPage() {
                  )}
               </div>
            </div>
+ 
+           {/* DATABASE TOOLS */}
+           <div className="bg-bg-surface border border-border-subtle rounded-[2.5rem] p-8 shadow-xl shadow-black/40 space-y-6 mt-8">
+              <div className="flex items-center gap-3">
+                 <span className="text-xl">🛠️</span>
+                 <p className="text-[10px] font-black text-content-tertiary uppercase tracking-widest">Database Tools</p>
+              </div>
+              <p className="text-[10px] text-content-tertiary leading-relaxed font-medium text-left">
+                 Use these tools to manage the user database and test global features like the leaderboard.
+              </p>
+              <button 
+                onClick={async () => {
+                  if (!confirm('This will create 10 system bots for the leaderboard. Proceed?')) return;
+                  try {
+                    const { userDataService } = await import('@/lib/userDataService');
+                    await userDataService.seedLeaderboard();
+                    alert('Leaderboard seeded successfully!');
+                  } catch (err) {
+                    console.error('Seeding failed:', err);
+                    alert('Seeding failed. Check console.');
+                  }
+                }}
+                disabled={isSyncing}
+                className="w-full py-5 bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 font-black uppercase tracking-[0.2em] text-[10px] rounded-[1.5rem] hover:bg-yellow-400 hover:text-black transition-all disabled:opacity-30 active:scale-95 flex items-center justify-center gap-3"
+              >
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                 </svg>
+                 Seed Global Leaderboard
+              </button>
+           </div>
 
            {/* DANGER ZONE */}
            <div className="bg-red-500/5 border border-red-500/20 rounded-[2.5rem] p-8 space-y-6 shadow-xl shadow-red-500/5 mt-8">
