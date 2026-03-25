@@ -542,7 +542,7 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
             },
             "image": currentEpisode?.poster || animeDetails?.poster || [],
             "description": `Stream ${seriesTitle} ${currentEpisode?.title || episodeTitle} in High Quality on AMAI TV.`
-          })
+          }).replace(/</g, '\\u003c')
         }}
       />
 

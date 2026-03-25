@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       timeout: 20000,
     });
     const items = parseAnimeListFromHtml(String(html));
-    return NextResponse.json({ q, items }, { status: 200 });
+    return NextResponse.json({ items }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: true, message: e?.message || 'Failed to search' }, { status: 500 });
   }

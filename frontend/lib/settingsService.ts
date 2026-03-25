@@ -11,7 +11,7 @@ export interface SiteSettings {
 
 const DEFAULT_SETTINGS: SiteSettings = {
   site_base: process.env.SITE_BASE || '',
-  tmdb_api_key: '3e95dc9b1d4baa2f4dd99d97c99fb225',
+  tmdb_api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY || '',
   hide_schedule: true,
   hide_upcoming: true,
 };

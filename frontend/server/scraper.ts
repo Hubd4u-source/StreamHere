@@ -1247,7 +1247,7 @@ export async function fetchUpcomingEpisodes(): Promise<{
   }
 }
 
-const TMDB_API_KEY = '3e95dc9b1d4baa2f4dd99d97c99fb225';
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '3e95dc9b1d4baa2f4dd99d97c99fb225'; // Fallback for local dev if needed
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 
 export async function fetchTMDBDetails(type: 'tv' | 'movie', id: number | string): Promise<TMDBDetails | null> {

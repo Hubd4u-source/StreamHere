@@ -307,7 +307,7 @@ export default async function TitlePage({
               "worstRating": "1",
               "ratingCount": data.reviews?.length || 1
             } : undefined
-          })
+          }).replace(/</g, '\\u003c')
         }}
       />
       
