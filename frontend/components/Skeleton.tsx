@@ -23,8 +23,7 @@ export function ScreenSkeleton() {
             <div className="absolute inset-0 bg-accent/20 rounded-full blur-2xl opacity-40 animate-pulse" />
             <div className="relative w-28 h-28 bg-bg-surface border border-border-subtle rounded-3xl flex items-center justify-center shadow-2xl">
               <Image
-                unoptimized
-                src="https://i.ibb.co/YBQ2N8w7/logo.png"
+                src="/Logo.jpg"
                 alt="AMAI TV"
                 width={80}
                 height={80}
