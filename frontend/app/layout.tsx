@@ -83,6 +83,13 @@ export default function RootLayout({
         {/* Remove third-party scripts for cleaner UX */}
         <meta name="theme-color" content="#0D0D0F" />
         <link rel="icon" href="data:," />
+        <style>{`
+          html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
+          }
+        `}</style>
       </head>
       <body className="bg-bg-base text-content-primary font-sans antialiased flex flex-col min-h-[100dvh]">
         <AuthProvider>

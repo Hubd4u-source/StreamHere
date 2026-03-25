@@ -83,8 +83,8 @@ export default function NewBottomNav() {
   }, [settings]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface border-t border-border-subtle md:hidden safe-area-bottom">
-      <div className="h-16 flex items-stretch">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface border-t border-border-subtle md:hidden safe-area-bottom overflow-hidden">
+      <div className="h-16 flex items-stretch overflow-x-auto scrollbar-hide">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
