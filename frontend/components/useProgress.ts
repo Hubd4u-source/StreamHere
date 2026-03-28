@@ -1,7 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 
-type ProgressMap = Record<string, { position: number; duration: number; completed?: boolean }>;
+export type ProgressMap = Record<string, { 
+  position: number; 
+  duration: number; 
+  completed?: boolean;
+  title?: string;
+  episode?: string;
+  season?: string;
+  poster?: string;
+  seriesUrl?: string;
+  postId?: number;
+}>;
 const KEY = "amai:progress:v1";
 
 function load(): ProgressMap {
@@ -16,9 +26,29 @@ function save(map: ProgressMap) {
 export function useProgress() {
   const [map, setMap] = useState<ProgressMap>({});
   useEffect(() => { setMap(load()); }, []);
-  const set = (episodeUrl: string, position: number, duration: number) => {
+  
+  const set = (
+    episodeUrl: string, 
+    position: number, 
+    duration: number, 
+    metadata?: { title?: string, episode?: string, season?: string, poster?: string | null, seriesUrl?: string, postId?: number }
+  ) => {
     const completed = duration > 0 && position / duration >= 0.98;
-    const next: ProgressMap = { ...map, [episodeUrl]: { position, duration, completed } };
+    const next: ProgressMap = { 
+      ...map, 
+      [episodeUrl]: { 
+        ...map[episodeUrl],
+        position, 
+        duration, 
+        completed,
+        title: metadata?.title || map[episodeUrl]?.title,
+        episode: metadata?.episode || map[episodeUrl]?.episode,
+        season: metadata?.season || map[episodeUrl]?.season,
+        poster: metadata?.poster || map[episodeUrl]?.poster || undefined,
+        seriesUrl: metadata?.seriesUrl || map[episodeUrl]?.seriesUrl,
+        postId: metadata?.postId || map[episodeUrl]?.postId,
+      } 
+    };
     setMap(next); save(next);
   };
   const get = (episodeUrl: string) => map[episodeUrl];

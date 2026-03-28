@@ -114,68 +114,59 @@ export default function UpcomingEpisodesGrid() {
   }
 
   return (
-    <div className="space-y-12">
-      <div className="overflow-x-auto pb-8 scrollbar-hide">
-        <div className="flex gap-6 min-w-max">
-          {episodes.map((episode) => {
-            const { timeText, isPast } = formatCountdown(episode.countdown);
-            const imageSrc = episode.image.startsWith('data:') ? episode.image : `/api/image?src=${encodeURIComponent(episode.image.startsWith('//') ? `https:${episode.image}` : episode.image)}`;
-            return (
-              <div key={episode.id} className="w-48 group">
-                <AnimeLink seriesUrl={episode.url} className="block space-y-4">
-                  <div className="relative aspect-[2/3] bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden group-hover:border-accent/40 group-hover:shadow-2xl group-hover:shadow-accent/5">
-                    <img
-                      src={imageSrc}
-                      alt={episode.title}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Dark Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-bg-base/90 via-transparent to-transparent opacity-60" />
+    <div className="w-full">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4">
+        {episodes.map((episode) => {
+          const { timeText, isPast } = formatCountdown(episode.countdown);
+          const imageSrc = episode.image.startsWith('data:') ? episode.image : `/api/image?src=${encodeURIComponent(episode.image.startsWith('//') ? `https:${episode.image}` : episode.image)}`;
+          return (
+            <div key={episode.id} className="flex-shrink-0 w-40 md:w-52 pr-6 group">
+              <AnimeLink seriesUrl={episode.url} className="block space-y-4">
+                <div className="relative aspect-[2/3] bg-bg-surface border border-border-subtle rounded-md overflow-hidden transition-all duration-300 group-hover:border-accent group-hover:shadow-2xl group-hover:shadow-accent/5">
+                  <img
+                    src={imageSrc}
+                    alt={episode.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  
+                  {/* Dark Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-bg-base/90 via-transparent to-transparent opacity-60" />
 
-                    {/* Badge: Episode */}
-                    <div className="absolute bottom-3 left-3 px-2 py-1 bg-bg-surface/90 border border-border-subtle rounded-md backdrop-blur-sm">
-                      <span className="text-[10px] font-bold tracking-tight text-accent">{episode.episode}</span>
-                    </div>
-
-                    {/* Badge: Timer */}
-                    <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border backdrop-blur-md shadow-lg ${
-                      isPast 
-                        ? 'bg-red-500/20 border-red-500/50 text-red-200' 
-                        : 'bg-accent/10 border-accent/30 text-accent group-hover:bg-accent group-hover:text-bg-base'
-                    }`}>
-                      {timeText}
-                    </div>
-
-                    {/* Play Icon (Hover Only) */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-bg-base shadow-2xl">
-                        <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                      </div>
-                    </div>
+                  {/* Badge: Episode */}
+                  <div className="absolute bottom-3 left-3 px-2 py-1 bg-bg-surface/90 border border-border-subtle rounded-md backdrop-blur-sm">
+                    <span className="text-[10px] font-bold tracking-tight text-accent">{episode.episode}</span>
                   </div>
 
-                  <div className="text-center px-2">
-                    <h3 className="text-sm font-bold text-content-primary line-clamp-1 group-hover:text-accent">
-                      {episode.title}
-                    </h3>
-                    <p className="text-[10px] text-content-tertiary mt-1 font-medium uppercase tracking-[0.1em]">Coming Soon</p>
+                  {/* Badge: Timer */}
+                  <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-sm text-[10px] font-bold tracking-widest uppercase border backdrop-blur-md shadow-lg ${
+                    isPast 
+                      ? 'bg-red-500/20 border-red-500/50 text-red-200' 
+                      : 'bg-accent/10 border-accent/30 text-accent group-hover:bg-accent group-hover:text-bg-base'
+                  }`}>
+                    {timeText}
                   </div>
-                </AnimeLink>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      
-      <div className="text-center">
-        <a
-          href="/upcoming"
-          className="btn-outline px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/40 inline-flex items-center gap-2"
-        >
-          <span>View Schedule</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        </a>
+
+                  {/* Play Icon (Hover Only) */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-bg-base shadow-2xl">
+                      <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-2 space-y-1">
+                  <h3 className="text-[13px] font-medium text-content-primary leading-tight line-clamp-2 transition-colors group-hover:text-accent">
+                    {episode.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1 h-1 bg-accent rounded-full animate-pulse"></span>
+                    <span className="text-[10px] text-content-tertiary font-medium uppercase tracking-wider">Upcoming</span>
+                  </div>
+                </div>
+              </AnimeLink>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

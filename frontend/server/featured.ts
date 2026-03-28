@@ -53,7 +53,7 @@ export async function getFeaturedAnime(): Promise<HeroItem[]> {
             year: tmdb?.first_air_date ? new Date(tmdb.first_air_date).getFullYear() : 2024,
             episodeCount: tmdb?.number_of_episodes || details.episodes.length,
             badge: 'POPULAR',
-            watchUrl: `/watch?episode=${encodeURIComponent(item.url)}`,
+            watchUrl: `/watch/${encodeURIComponent(item.url.split('/').filter(Boolean).pop() || '')}`,
             titleUrl: `/title/${encodeURIComponent(slug)}`,
             rating: tmdb?.vote_average ? tmdb.vote_average.toFixed(1) : undefined
           };

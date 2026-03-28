@@ -1,4 +1,5 @@
-import { fetchEpisodePlayers, fetchAnimeDetails, fetchAnimeList, BASE } from "@/server/scraper";
+import { fetchEpisodePlayers, fetchAnimeDetails, fetchAnimeList, searchAnime, BASE } from "@/server/scraper";
+import { SeriesListItem } from "@/server/types";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
@@ -10,6 +11,7 @@ import EpisodeCard from "@/components/EpisodeCard";
 import EpisodesList from "@/components/EpisodesList";
 import { generateSlug } from "@/lib/utils";
 import { Metadata, ResolvingMetadata } from 'next';
+import { redirect } from "next/navigation";
 
 type Props = {
   searchParams: { episode?: string; url?: string; post_id?: string; season?: string; server?: string };
@@ -67,76 +69,48 @@ async function findAnimeBySlug(slug: string): Promise<{ url: string; postId?: nu
   try {
     console.log(`findAnimeBySlug: Searching for slug: ${slug}`);
 
-    // Search through multiple pages to find the anime
+    // Strategy 1: Search first (Fastest and most accurate)
+    const searchResults = await searchAnime(slug.replace(/-/g, ' '));
+    const findInResults = (results: SeriesListItem[]) => {
+      return results.find(item => {
+        if (!item.url) return false;
+        const itemSlug = item.url.split('/').filter(Boolean).pop() || '';
+        return itemSlug.toLowerCase() === slug.toLowerCase();
+      });
+    };
+
+    const found = findInResults(searchResults);
+    if (found) {
+      console.log(`findAnimeBySlug: Found via search: ${found.title} (${found.url})`);
+      return { url: found.url, postId: found.postId };
+    }
+
+    // Strategy 2: Search for full title (fallback)
+    const titleResults = await searchAnime(slug);
+    const foundByTitle = findInResults(titleResults);
+    if (foundByTitle) {
+      console.log(`findAnimeBySlug: Found via title search: ${foundByTitle.title} (${foundByTitle.url})`);
+      return { url: foundByTitle.url, postId: foundByTitle.postId };
+    }
+
+    // Strategy 3: Paging fallback (slow)
+    console.log(`findAnimeBySlug: Search failed, falling back to paging`);
     for (let page = 1; page <= 3; page++) {
-      console.log(`findAnimeBySlug: Searching page ${page}`);
       const response = await fetchAnimeList(page);
-      console.log(`findAnimeBySlug: Found ${response.items.length} items on page ${page}`);
-
       const anime = response.items.find(item => {
-        if (!item.title) return false;
-        const itemSlug = item.title.toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '-') // Replace spaces with hyphens
-          .replace(/-+/g, '-') // Replace multiple hyphens with single
-          .trim();
-
-        console.log(`findAnimeBySlug: Comparing "${itemSlug}" with "${slug.toLowerCase()}"`);
-        return itemSlug === slug.toLowerCase();
+        const itemSlug = item.url.split('/').filter(Boolean).pop() || '';
+        return itemSlug.toLowerCase() === slug.toLowerCase();
       });
 
       if (anime) {
-        console.log(`findAnimeBySlug: Found anime: ${anime.title} (${anime.url})`);
+        console.log(`findAnimeBySlug: Found via paging: ${anime.title} (${anime.url})`);
         return { url: anime.url, postId: anime.postId };
       }
     }
 
-    // If not found in series, try movies
-    console.log(`findAnimeBySlug: Not found in series, trying movies`);
-    for (let page = 1; page <= 2; page++) {
-      const response = await fetchAnimeList(page);
-      const anime = response.items.find(item => {
-        if (!item.title) return false;
-        const itemSlug = item.title.toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .trim();
-        return itemSlug === slug.toLowerCase();
-      });
-
-      if (anime) {
-        console.log(`findAnimeBySlug: Found in movies: ${anime.title} (${anime.url})`);
-        return { url: anime.url, postId: anime.postId };
-      }
-    }
-
-    // Try partial matching as a fallback
-    console.log(`findAnimeBySlug: Trying partial matching for slug: ${slug}`);
-    for (let page = 1; page <= 2; page++) {
-      const response = await fetchAnimeList(page);
-      const anime = response.items.find(item => {
-        if (!item.title) return false;
-        const itemSlug = item.title.toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .trim();
-
-        // Try partial matching - check if the slug is contained in the item slug or vice versa
-        return itemSlug.includes(slug.toLowerCase()) || slug.toLowerCase().includes(itemSlug);
-      });
-
-      if (anime) {
-        console.log(`findAnimeBySlug: Found with partial matching: ${anime.title} (${anime.url})`);
-        return { url: anime.url, postId: anime.postId };
-      }
-    }
-
-    console.log(`findAnimeBySlug: No anime found for slug: ${slug}`);
     return null;
   } catch (error) {
-    console.error('Error finding anime by slug:', error);
+    console.error('Error in findAnimeBySlug:', error);
     return null;
   }
 }
@@ -163,6 +137,19 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
   const postIdParam = Number(searchParams?.post_id || 0);
   const requestedSeason = Number(searchParams?.season || 0);
   const serverParam = searchParams?.server || "";
+
+  if (episodeParam && !episodeParam.startsWith('http')) {
+    const slug = episodeParam.split('/').filter(Boolean).pop() || '';
+    const params = new URLSearchParams();
+    if (seriesUrlParam) params.set('url', seriesUrlParam);
+    if (requestedSeason) params.set('season', String(requestedSeason));
+    if (postIdParam) params.set('post_id', String(postIdParam));
+    if (serverParam) params.set('server', serverParam);
+    
+    const queryString = params.toString();
+    const target = `/watch/${slug}${queryString ? `?${queryString}` : ''}`;
+    redirect(target);
+  }
 
   if (!episodeParam) {
     return (
@@ -209,7 +196,18 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
       } else {
         // Validate that we have a valid episode identifier
         if (decoded && decoded.length > 0) {
-          episodeUrl = `${BASE}/episode/${decoded}/`;
+          const cleanPath = decoded.replace(/^\/+/, '');
+          if (cleanPath.startsWith('episode/')) {
+            episodeUrl = `${BASE}/${cleanPath}`;
+          } else {
+            episodeUrl = `${BASE}/episode/${cleanPath}`;
+          }
+
+          // Ensure trailing slash only if not already there and not a file
+          if (!episodeUrl.endsWith('/') && !episodeUrl.split('/').pop()?.includes('.')) {
+            episodeUrl += '/';
+          }
+          
           console.log(`WatchPage: Built episode URL: ${episodeUrl}`);
 
           // If series URL isn't provided, infer series slug from the episode identifier
@@ -392,9 +390,12 @@ export default async function WatchPage({ searchParams }: { searchParams: { epis
               title: currentEpisode?.title || (isMovie ? seriesTitle : episodeTitle),
               episode: currentEpisode?.number || (isMovie ? 'Movie' : '1'),
               season: String(effectiveSeason),
-              poster: currentEpisode?.poster || animeDetails?.poster || null,
+              poster: animeDetails?.poster || currentEpisode?.poster || null,
+              seriesUrl: seriesUrl,
+              postId: animeDetails?.postId || resolvedPostId,
               url: episodeUrl
             }}
+            nextEpisodeUrl={!isMovie && nextEpisode ? `/watch?episode=${encodeURIComponent(nextEpisode.url)}&url=${encodeURIComponent(seriesUrl)}&season=${effectiveSeason}` : undefined}
           />
         </div>
 

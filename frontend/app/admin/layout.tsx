@@ -9,6 +9,9 @@ const navItems = [
   { name: 'Terminal', path: '/admin', emoji: '📟' },
   { name: 'Catalog', path: '/admin/content', emoji: '📁' },
   { name: 'Sync Engine', path: '/admin/content/sync', emoji: '📡' },
+  { name: 'Users', path: '/admin/users', emoji: '👥' },
+  { name: 'Broadcast', path: '/admin/broadcast', emoji: '📢' },
+  { name: 'Analytics', path: '/admin/analytics', emoji: '📈' },
   { name: 'Vault Config', path: '/admin/settings', emoji: '⚙️' },
 ];
 

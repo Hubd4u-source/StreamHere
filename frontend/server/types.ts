@@ -26,6 +26,7 @@ export interface AnimeDetailsResponse {
   image?: string | null;
   postId: number;
   season?: number | null;
+  totalSeasons?: number | null;
   seasons: SeasonItem[];
   episodes: EpisodeItem[];
   poster?: string | null;
@@ -54,6 +55,8 @@ export interface SeriesListItem {
   url: string;
   image?: string | null;
   postId?: number;
+  season?: string;
+  episodeRange?: string;
 }
 
 export interface AnimeListResponse {

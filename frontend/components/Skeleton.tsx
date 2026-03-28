@@ -11,9 +11,16 @@ export function CardSkeleton() {
 
 export function ScreenSkeleton() {
   return (
-    <div className="min-h-screen bg-bg-base relative overflow-hidden flex items-center justify-center font-sans">
+    <div className="min-h-screen bg-[#0D0D0F] relative overflow-hidden flex items-center justify-center font-sans">
+      {/* Branded Background with Overlay */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20"
+        style={{ backgroundImage: 'url("/Background.png")' }}
+      />
+      <div className="absolute inset-0 z-1 bg-gradient-to-b from-black/80 via-black/40 to-black/80" />
+      
       {/* Subtle Radial Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] animate-pulse z-2" />
       
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center gap-12">

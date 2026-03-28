@@ -66,10 +66,10 @@ export default function OngoingSeriesGrid() {
   }
 
   return (
-    <div className="space-y-12">
-      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {ongoingSeries.slice(0, 6).map((series) => (
-          <div key={series.url} className="w-full">
+    <div className="w-full">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth">
+        {ongoingSeries.map((series) => (
+          <div key={series.url} className="flex-shrink-0 w-40 md:w-52 pr-6">
             <NewAnimeCard
               url={series.url}
               title={series.title || 'Unknown Title'}
@@ -83,18 +83,6 @@ export default function OngoingSeriesGrid() {
           </div>
         ))}
       </div>
-      
-      {ongoingSeries.length > 6 && (
-        <div className="text-center pt-4">
-          <a
-            href="/ongoing"
-            className="btn-outline px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/40 transition-all inline-flex items-center gap-2"
-          >
-            <span>View All Ongoing</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-          </a>
-        </div>
-      )}
     </div>
   );
 }

@@ -152,33 +152,33 @@ export default function NewCarousel({
         </div>
 
         {/* Navigation Arrows - Desktop Only */}
-        <div className={`hidden md:block absolute left-[-16px] top-1/2 -translate-y-1/2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
           <button
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
-            className={`w-8 h-8 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center text-content-secondary transition-all duration-200 ${
+            className={`w-12 h-12 rounded-full bg-bg-surface/80 backdrop-blur-md border border-border-subtle flex items-center justify-center text-accent shadow-xl transition-all duration-200 ${
               canScrollLeft
-                ? "hover:bg-bg-overlay hover:text-content-primary cursor-pointer"
-                : "opacity-30 cursor-not-allowed"
+                ? "hover:bg-accent hover:text-bg-base hover:scale-110 active:scale-95 cursor-pointer"
+                : "opacity-20 cursor-not-allowed"
             }`}
             aria-label="Scroll left"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            <ChevronLeftIcon className="w-6 h-6 stroke-[2.5]" />
           </button>
         </div>
 
-        <div className={`hidden md:block absolute right-[-16px] top-1/2 -translate-y-1/2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
           <button
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
-            className={`w-8 h-8 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center text-content-secondary transition-all duration-200 ${
+            className={`w-12 h-12 rounded-full bg-bg-surface/80 backdrop-blur-md border border-border-subtle flex items-center justify-center text-accent shadow-xl transition-all duration-200 ${
               canScrollRight
-                ? "hover:bg-bg-overlay hover:text-content-primary cursor-pointer"
-                : "opacity-30 cursor-not-allowed"
+                ? "hover:bg-accent hover:text-bg-base hover:scale-110 active:scale-95 cursor-pointer"
+                : "opacity-20 cursor-not-allowed"
             }`}
             aria-label="Scroll right"
           >
-            <ChevronRightIcon className="w-4 h-4" />
+            <ChevronRightIcon className="w-6 h-6 stroke-[2.5]" />
           </button>
         </div>
       </div>

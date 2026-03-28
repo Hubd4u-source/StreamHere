@@ -11,6 +11,7 @@ export default function EpisodesList({
   season,
   currentEpisodeUrl,
   seasons,
+  useSlugFormat,
 }: {
   episodes: Episode[];
   seriesUrl: string;
@@ -18,6 +19,7 @@ export default function EpisodesList({
   season: number;
   currentEpisodeUrl?: string | null;
   seasons?: { season: number | string; label: string; nonRegional: boolean; regionalLanguageInfo?: { isNonRegional: boolean; isSubbed: boolean; isDubbed: boolean; languageType: 'dubbed' | 'subbed' | 'unknown' } }[];
+  useSlugFormat?: boolean;
 }) {
   const { ratio, isCompleted } = useProgress();
 
@@ -67,18 +69,19 @@ export default function EpisodesList({
             progress={ratio(ep.url)}
             completed={isCompleted(ep.url)}
             isCurrentEpisode={currentEpisodeUrl ? currentEpisodeUrl === ep.url : false}
+            useSlugFormat={useSlugFormat}
           />
         ))}
       </div>
       
       {/* Regional Language Notice */}
       {hasNonRegionalEpisodes && (
-        <div className="flex items-center justify-center py-5 px-4 bg-bg-surface border border-border-subtle rounded-xl">
-          <div className="flex items-center gap-3 text-content-tertiary text-xs">
-            <svg className="w-4 h-4 text-accent flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <div className="flex items-center justify-center py-6 px-4 border-t border-border-subtle/30">
+          <div className="flex items-center gap-3 text-content-tertiary">
+            <svg className="w-4 h-4 text-accent/60 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span className="font-bold uppercase tracking-widest text-[10px]">Some episodes are subbed-only</span>
+            <span className="font-bold uppercase tracking-[0.2em] text-[10px] opacity-60">Some episodes are subbed-only</span>
           </div>
         </div>
       )}

@@ -40,7 +40,7 @@ export default async function MovieDetailsPage({
   // Prepare smart buttons for DetailsHeader
   const smartButtons = [
     {
-      url: `/watch?episode=${encodeURIComponent(data.url)}&url=${encodeURIComponent(`/movies/${slug}`)}`,
+      url: `/watch/${slug}?url=${encodeURIComponent(`/movies/${slug}`)}`,
       actionText: "Watch Now",
       episodeText: "Full Movie",
       buttonClass: "btn-primary"
@@ -99,7 +99,7 @@ export default async function MovieDetailsPage({
                         </p>
                       </div>
                       <a
-                        href={`/watch?episode=${encodeURIComponent(data.url)}&url=${encodeURIComponent(`/movies/${slug}`)}&server=${index}`}
+                        href={`/watch/${slug}?url=${encodeURIComponent(`/movies/${slug}`)}&server=${index}`}
                          className="px-8 h-12 bg-accent/10 border border-accent/20 text-accent text-xs font-black uppercase tracking-widest rounded-xl hover:bg-accent hover:text-bg-base transition-all duration-500 flex items-center justify-center"
                       >
                         Initialize
@@ -114,7 +114,7 @@ export default async function MovieDetailsPage({
                     <p className="text-content-tertiary text-xs uppercase tracking-widest font-bold">Primary Streaming Core Available</p>
                   </div>
                   <a
-                    href={`/watch?episode=${encodeURIComponent(data.url)}&url=${encodeURIComponent(`/movies/${slug}`)}`}
+                    href={`/watch/${slug}?url=${encodeURIComponent(`/movies/${slug}`)}`}
                     className="btn-primary px-10 h-12 text-xs"
                   >
                     Play Movie

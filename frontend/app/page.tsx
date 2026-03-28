@@ -1,4 +1,4 @@
-import { fetchAnimeList, fetchMoviesList, fetchCartoonList, BASE } from "@/server/scraper";
+import { fetchAnimeList, fetchMoviesList, fetchCartoonList, fetchFreshDrops, BASE } from "@/server/scraper";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
@@ -9,6 +9,7 @@ import UpcomingEpisodesGrid from "@/components/UpcomingEpisodesGrid";
 import ContinueWatchingHome from "@/components/ContinueWatchingHome";
 import RecentlyWatchedHome from "@/components/RecentlyWatchedHome";
 import HeroBanner from "@/components/HeroBanner";
+import BroadcastHistory from "@/components/BroadcastHistory";
 import { getFeaturedAnime } from "@/server/featured";
 import { settingsService } from "@/lib/settingsService";
 
@@ -23,9 +24,12 @@ export default async function HomePage() {
   const trendingData = await fetchAnimeList(1);
   const trendingAnime = trendingData.items?.slice(0, 10) || [];
 
-  // Fetch latest episodes
+  // Fetch latest episodes (fallback)
   const latestData = await fetchAnimeList(2);
-  const latestAnime = latestData.items?.slice(0, 10) || [];
+
+  // Fetch fresh drops
+  const freshDrops = await fetchFreshDrops();
+  const latestAnime = freshDrops.length > 0 ? freshDrops : (latestData.items?.slice(0, 10) || []);
 
   // Fetch popular anime
   const popularData = await fetchAnimeList(3);
@@ -47,6 +51,9 @@ export default async function HomePage() {
         {/* Hero Banner Section */}
         <HeroBanner initialItems={featuredItems} />
 
+        {/* Global Broadcast History */}
+        <BroadcastHistory />
+
         <div className="px-4 md:px-8 space-y-24">
           {/* Continue Watching */}
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -63,33 +70,27 @@ export default async function HomePage() {
 
         {/* Ongoing Series Section */}
         <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div className="space-y-2">
-              <h2 className="section-heading text-3xl md:text-4xl">Ongoing Series</h2>
-              <p className="section-subtitle text-lg">Currently airing series and new shows</p>
-            </div>
-            <a href="/ongoing" className="btn-outline px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/20 transition-all">
-              View All
-            </a>
-          </div>
-
-          <OngoingSeriesGrid />
+          <NewCarousel 
+            title="Ongoing Series" 
+            subtitle="Currently airing series and new shows" 
+            showViewAll 
+            viewAllHref="/ongoing"
+          >
+            <OngoingSeriesGrid />
+          </NewCarousel>
         </section>
 
         {/* Upcoming Episodes Section */}
         {!settings.hide_upcoming && (
           <section>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-              <div className="space-y-2">
-                <h2 className="section-heading text-3xl md:text-4xl">Upcoming Episodes</h2>
-                <p className="section-subtitle text-lg">Coming soon with real-time countdowns</p>
-              </div>
-              <a href="/upcoming" className="btn-outline px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-accent/20 transition-all">
-                Schedule
-              </a>
-            </div>
-
-            <UpcomingEpisodesGrid />
+            <NewCarousel 
+              title="Upcoming Episodes" 
+              subtitle="Coming soon with real-time countdowns" 
+              showViewAll 
+              viewAllHref="/upcoming"
+            >
+              <UpcomingEpisodesGrid />
+            </NewCarousel>
           </section>
         )}
 
@@ -116,7 +117,7 @@ export default async function HomePage() {
         {/* Latest Episodes */}
         <section>
           <NewCarousel title="Latest Episodes" subtitle="Recently added content" showViewAll viewAllHref="/anime">
-            {latestAnime.map((anime, index) => (
+            {latestAnime.map((anime: any, index: number) => (
               <div key={anime.url} className="flex-shrink-0 w-40 md:w-52 pr-6">
                 <NewAnimeCard
                   url={anime.url}
@@ -125,7 +126,8 @@ export default async function HomePage() {
                   postId={anime.postId}
                   rating={Math.floor(Math.random() * 2) + 3}
                   year={2024}
-                  episodeCount={12}
+                  season={anime.season}
+                  episodeRange={anime.episodeRange}
                   isNew={index < 5}
                 />
               </div>

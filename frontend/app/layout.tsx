@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import Footer from "@/components/Footer";
+import BroadcastBanner from "@/components/BroadcastBanner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -94,6 +95,7 @@ export default function RootLayout({
       <body className="bg-bg-base text-content-primary font-sans antialiased flex flex-col min-h-[100dvh]">
         <AuthProvider>
           <SettingsProvider>
+            <BroadcastBanner />
             <div className="flex-1 flex flex-col">
               {children}
             </div>

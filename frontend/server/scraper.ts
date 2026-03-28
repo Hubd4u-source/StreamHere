@@ -147,10 +147,10 @@ export function parseSeasonsFromHtml(html: string): SeasonItem[] {
     };
 
     // Check for [Sub] or [Dub] indicators in the label
-    if (label.includes('[Sub]')) {
+    if (/\[Sub\]/i.test(label)) {
       regionalLanguageInfo.isSubbed = true;
       regionalLanguageInfo.languageType = 'subbed';
-    } else if (label.includes('[Dub]')) {
+    } else if (/\[Dub\]/i.test(label)) {
       regionalLanguageInfo.isDubbed = true;
       regionalLanguageInfo.languageType = 'dubbed';
     }
@@ -174,7 +174,6 @@ export function parseSeasonsFromHtml(html: string): SeasonItem[] {
     }
   });
 
-  console.log(`parseSeasonsFromHtml: Final seasons count: ${seasons.length}`);
   return seasons;
 }
 
@@ -365,33 +364,91 @@ export function parsePosterFromHtml(html: string, baseUrl: string): string | nul
   return img;
 }
 
-function parseMetaFromHtml(html: string): { genres?: string[]; year?: number | null; totalEpisodes?: number | null; duration?: string | null; languages?: string[]; synopsis?: string | null; status?: string | null } {
+function parseMetaFromHtml(html: string): { 
+  genres?: string[]; 
+  year?: number | null; 
+  totalEpisodes?: number | null; 
+  duration?: string | null; 
+  languages?: string[]; 
+  synopsis?: string | null; 
+  status?: string | null;
+  totalSeasons?: number | null;
+} {
   const $ = cheerio.load(html);
   const out: any = {};
-  // Genres: common selectors
-  const genreTexts = $("a[rel='tag'], .genres a, .genre a").map((_, el) => $(el).text().trim()).get().filter(Boolean);
-  if (genreTexts.length) out.genres = Array.from(new Set(genreTexts));
-  // Year: look for patterns
-  const text = $('body').text();
-  const ym = text.match(/\b(19|20)\d{2}\b/);
-  if (ym) out.year = Number(ym[0]);
-  // Total episodes: search numeric near 'Episodes'
-  const epm = text.match(/Episodes?\s*[:|-]?\s*(\d+)/i);
-  if (epm) out.totalEpisodes = Number(epm[1]);
-  // Duration
-  const durm = text.match(/(\d+\s*(min|minutes|mins))/i);
-  if (durm) out.duration = durm[0];
-  // Languages
-  const langs: string[] = [];
-  if (/subbed/i.test(text)) langs.push('Sub');
-  if (/dubbed|dub/i.test(text)) langs.push('Dub');
-  if (langs.length) out.languages = Array.from(new Set(langs));
-  // Synopsis block
-  const synopsis = $('.entry-content p, .synopsis, .description').first().text().trim();
+  
+  // 1. Synopsis: Prioritize #overview-text
+  const synopsis = $('#overview-text').text().trim() || $('.entry-content p, .synopsis, .description').first().text().trim();
   if (synopsis) out.synopsis = synopsis;
-  // Status
-  const statusMatch = text.match(/Status\s*[:|-]?\s*(Ongoing|Completed|Finished|Airing)/i);
+
+  // 2. Info Badges (Seasons, Episodes, Duration, Year)
+  const allText = $('body').text();
+  
+  // Look for text patterns in div badges specifically
+  // These often have SVGs next to them
+  const infoBadges = $('div').filter((_, el) => {
+    const text = $(el).text().trim();
+    return /\d+\s*(Seasons|Episodes|min)|^\d{4}$/.test(text) && text.length < 20;
+  });
+
+  infoBadges.each((_, el) => {
+    const text = $(el).text().trim();
+    if (text.includes('Seasons')) {
+      const m = text.match(/(\d+)/);
+      if (m) out.totalSeasons = Number(m[1]);
+    } else if (text.includes('Episodes')) {
+      const m = text.match(/(\d+)/);
+      if (m) out.totalEpisodes = Number(m[1]);
+    } else if (text.includes('min')) {
+      out.duration = text;
+    } else if (/^\d{4}$/.test(text)) {
+      out.year = Number(text);
+    }
+  });
+
+  // Fallbacks for metadata if not found in badges
+  if (!out.year) {
+    const ym = allText.match(/\b(19|20)\d{2}\b/);
+    if (ym) out.year = Number(ym[0]);
+  }
+  if (!out.totalEpisodes) {
+    const epm = allText.match(/Episodes?\s*[:|-]?\s*(\d+)/i);
+    if (epm) out.totalEpisodes = Number(epm[1]);
+  }
+  if (!out.duration) {
+    const durm = allText.match(/(\d+\s*(min|minutes|mins))/i);
+    if (durm) out.duration = durm[0];
+  }
+
+  // 3. Genres
+  // Try to find the h4 Genres header first
+  const genreHeader = $('h4').filter((_, el) => $(el).text().trim().toLowerCase().includes('genre'));
+  let genreTexts: string[] = [];
+  if (genreHeader.length) {
+    genreTexts = genreHeader.siblings('div').find('a').map((_, el) => $(el).text().trim()).get();
+  }
+  if (genreTexts.length === 0) {
+    genreTexts = $("a[rel='tag'], .genres a, .genre a").map((_, el) => $(el).text().trim()).get();
+  }
+  if (genreTexts.length) out.genres = Array.from(new Set(genreTexts.filter(Boolean)));
+
+  // 4. Languages
+  const langHeader = $('h4').filter((_, el) => $(el).text().trim().toLowerCase().includes('language'));
+  if (langHeader.length) {
+    const langs = langHeader.siblings('div').find('a').map((_, el) => $(el).text().trim()).get();
+    if (langs.length) out.languages = Array.from(new Set(langs.filter(Boolean)));
+  } else {
+    // Fallback language detections
+    const langs: string[] = [];
+    if (/subbed|\[Sub\]/i.test(allText)) langs.push('Sub');
+    if (/dubbed|dub|\[Dub\]/i.test(allText)) langs.push('Dub');
+    if (langs.length) out.languages = Array.from(new Set(langs));
+  }
+
+  // 5. Status
+  const statusMatch = allText.match(/Status\s*[:|-]?\s*(Ongoing|Completed|Finished|Airing)/i);
   if (statusMatch) out.status = statusMatch[1];
+
   return out;
 }
 
@@ -401,14 +458,16 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
 
   // 1. Check Cache First
   const slug = url.split('/').filter(Boolean).pop() || '';
+  const cacheKey = (season && season > 1) ? `${slug}-s${season}` : slug;
+
   if (slug) {
     try {
-      const cached = await animeCacheService.getCachedAnime(slug);
+      const cached = await animeCacheService.getCachedAnime(cacheKey);
       // Only return cache if it's not stale AND it has players (if requested)
       if (cached && !animeCacheService.isStale(cached)) {
         const hasPlayers = cached.episodes?.every(ep => Array.isArray(ep.players) && ep.players.length > 0);
         if (!includePlayers || hasPlayers) {
-          console.log(`AnimeCacheService: Cache hit for ${slug}`);
+          console.log(`AnimeCacheService: Cache hit for ${cacheKey}`);
           return {
             title: cached.title,
             image: cached.image,
@@ -421,12 +480,13 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
             poster: cached.poster || cached.image,
             rating: cached.rating,
             year: cached.year,
-            genres: cached.genres as string[] || []
+            genres: cached.genres as string[] || [],
+            totalSeasons: cached.seasons?.length || null
           } as AnimeDetailsResponse;
         }
       }
     } catch (err) {
-      console.error(`AnimeCacheService: Cache error for ${slug}`, err);
+      console.error(`AnimeCacheService: Cache error for ${cacheKey}`, err);
     }
   }
 
@@ -564,7 +624,7 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
         const decoded = decodeURIComponent(href);
         if (decoded.includes('/episode/')) {
           const epSlug = decoded.split('/episode/')[1]?.split('/')[0] || decoded;
-          href = `/watch?episode=${encodeURIComponent(epSlug)}`;
+          href = `/watch/${encodeURIComponent(epSlug)}`;
         }
       } catch (e) {
         console.error('Error transforming smart button URL:', e);
@@ -607,12 +667,13 @@ export async function fetchAnimeDetails(params: { url: string; postId: number; s
     poster, 
     related, 
     smartButtons, 
+    totalSeasons: meta.totalSeasons || (seasons.length > 0 ? seasons.length : null),
     ...meta 
   } as AnimeDetailsResponse;
 
   // 4. Save to Cache
   if (slug && details.title) {
-    animeCacheService.saveAnime(slug, {
+    animeCacheService.saveAnime(cacheKey, {
       title: details.title,
       image: details.poster || details.image || "",
       synopsis: details.synopsis || "",
@@ -1421,3 +1482,56 @@ export async function searchTMDB(query: string, type: 'tv' | 'movie' = 'tv'): Pr
     return null;
   }
 }
+
+export async function fetchFreshDrops(): Promise<SeriesListItem[]> {
+  await refreshDynamicConfig();
+  console.log('Fetching fresh drops from homepage widget');
+  try {
+    const { data } = await http.get(BASE, { responseType: 'text' });
+    const html = String(data || '');
+    return parseFreshDropsFromHtml(html);
+  } catch (error) {
+    console.error('fetchFreshDrops failed:', error);
+    return [];
+  }
+}
+
+export function parseFreshDropsFromHtml(html: string): SeriesListItem[] {
+  const $ = cheerio.load(html);
+  const items: SeriesListItem[] = [];
+  
+  // Target the specific section provided by the user
+  const widget = $('#widget_list_episodes-5, .widget_list_episodes').first();
+  const slides = widget.length ? widget.find('.swiper-slide') : $('.latest-ep-swiper-slide');
+
+  slides.each((_, el) => {
+    try {
+      const art = $(el).find('article').first();
+      const a = art.find('a.lnk-blk').first();
+      const href = a.attr('href');
+      if (!href) return;
+
+      const titleRaw = art.find('h2.entry-title').text().trim();
+      const season = art.find('.post-ql').text().trim();
+      const episodeRange = art.find('.year').text().trim();
+      
+      const imgEl = art.find('img').first();
+      let img = imgEl.attr('data-src') || imgEl.attr('src') || null;
+      if (img && img.startsWith('//')) img = `https:${img}`;
+
+      items.push({
+        title: titleRaw,
+        url: new URL(href, BASE).toString(),
+        image: stripBaseUrl(img) || undefined,
+        season,
+        episodeRange
+      });
+    } catch (e) {
+      console.error('Error parsing individual Fresh Drop item:', e);
+    }
+  });
+
+  console.log(`parseFreshDropsFromHtml: Found ${items.length} fresh drops`);
+  return items;
+}
+

@@ -6,6 +6,10 @@ export interface SiteSettings {
   tmdb_api_key: string;
   hide_schedule: boolean;
   hide_upcoming: boolean;
+  broadcast_enabled: boolean;
+  broadcast_message: string;
+  broadcast_type: 'info' | 'warning' | 'urgent';
+  broadcast_history: { message: string; type: string; timestamp: number }[];
   lastUpdated?: number;
 }
 
@@ -14,6 +18,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
   tmdb_api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY || '',
   hide_schedule: true,
   hide_upcoming: true,
+  broadcast_enabled: false,
+  broadcast_message: '',
+  broadcast_type: 'info',
+  broadcast_history: [],
 };
 
 class SettingsService {

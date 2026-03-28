@@ -14,6 +14,8 @@ type AnimeCardProps = {
   episodeCount?: number;
   isNew?: boolean;
   isPopular?: boolean;
+  season?: string;
+  episodeRange?: string;
 };
 
 export default function NewAnimeCard({
@@ -27,6 +29,8 @@ export default function NewAnimeCard({
   episodeCount,
   isNew = false,
   isPopular = false,
+  season,
+  episodeRange,
 }: AnimeCardProps) {
   // Generate the new slug-based URL
   const titleUrl = title ? createTitleUrl(title, postId) : url;
@@ -61,14 +65,28 @@ export default function NewAnimeCard({
             </div>
           </div>
 
-          {/* Minimal Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {/* Minimal Badges - Top Left */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
             {isNew && (
-              <span className="px-1.5 py-0.5 bg-accent text-bg-base text-[9px] font-bold rounded-sm uppercase tracking-wider">
+              <span className="px-1.5 py-0.5 bg-accent text-bg-base text-[9px] font-bold rounded-sm uppercase tracking-wider block shadow-sm shadow-black/40">
                 New
               </span>
             )}
+            {season && (
+              <span className="px-1.5 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[9px] font-bold rounded-sm uppercase tracking-wider block shadow-sm shadow-black/40">
+                {season}
+              </span>
+            )}
           </div>
+
+          {/* Minimal Badges - Bottom Left */}
+          {episodeRange && (
+            <div className="absolute bottom-2 left-2">
+              <span className="px-1.5 py-0.5 bg-accent/90 text-bg-base text-[9px] font-bold rounded-sm uppercase tracking-wider block shadow-sm shadow-black/40">
+                {episodeRange}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content Info */}

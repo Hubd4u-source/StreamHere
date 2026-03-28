@@ -199,7 +199,7 @@ export default async function TitlePage({
         <section className="space-y-4 w-full">
           <h2 className="section-heading text-2xl">Synopsis</h2>
           <div className="text-content-secondary leading-relaxed max-w-4xl">
-            <ReadMore text={"Enjoy a modern, fast experience with AMAI TV. Episodes update season-wise below. Choose a season and start watching instantly."} />
+            <ReadMore text={data.synopsis || "No synopsis available for this title."} />
           </div>
         </section>
 
@@ -220,6 +220,7 @@ export default async function TitlePage({
             season={selectedSeason || 1}
             currentEpisodeUrl={null}
             seasons={data.seasons}
+            useSlugFormat={true}
           />
         </section>
 
