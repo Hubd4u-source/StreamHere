@@ -3,6 +3,8 @@ import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
 import { headers } from "next/headers";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { searchAnimeAction } from "../actions";
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const query = (searchParams?.q || "").trim();
@@ -75,38 +77,14 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         )}
 
         <div className="mt-8">
-          {query && results.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-              {results.map((item) => (
-                <div key={item.url} className="w-full">
-                  <NewAnimeCard
-                    url={item.url}
-                    title={item.title}
-                    image={item.image}
-                    postId={item.postId}
-                    genres={[]}
-                    rating={Math.floor(Math.random() * 2) + 4}
-                    year={new Date().getFullYear()}
-                    episodeCount={undefined}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : query && results.length === 0 ? (
-            <div className="text-center py-24 space-y-6 bg-bg-surface border border-border-subtle rounded-md max-w-2xl mx-auto">
-              <div className="w-20 h-20 mx-auto text-content-tertiary opacity-20">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <div className="space-y-2">
-                <h3 className="section-heading text-2xl">No matches found</h3>
-                <p className="section-subtitle max-w-xs mx-auto">
-                  We couldn't find any results for "{query}". Try checking the spelling or using more general terms.
-                </p>
-              </div>
-            </div>
-          ) : !query && (
+          {query && (
+            <InfiniteGrid 
+              initialItems={results} 
+              fetchAction={searchAnimeAction.bind(null, query)}
+              initialPage={1}
+            />
+          )}
+          {!query && (
             <div className="max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[

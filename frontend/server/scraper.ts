@@ -316,11 +316,11 @@ export async function fetchAnimeList(page: number, type: string = 'series'): Pro
   return { page, items };
 }
 
-export async function searchAnime(query: string): Promise<SeriesListItem[]> {
+export async function searchAnime(query: string, page: number = 1): Promise<SeriesListItem[]> {
   console.log(`searchAnime called with query: ${query}`);
   try {
     const { data } = await http.get(`${BASE}/`, { 
-      params: { s: query },
+      params: { s: query, paged: page },
       responseType: 'text' 
     });
     const html = String(data || '');

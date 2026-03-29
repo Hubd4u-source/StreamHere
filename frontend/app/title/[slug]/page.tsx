@@ -86,34 +86,50 @@ type AnimeDetailsResponse = {
 // Function to find anime by slug using search for efficiency and reliability
 async function findAnimeBySlug(slug: string): Promise<{ url: string; postId?: number; isMovie: boolean } | null> {
   try {
-    // 1. Try search first - it's the most reliable way to find any anime by its title/slug
     const query = slug.replace(/-/g, ' ');
     console.log(`findAnimeBySlug: Searching for "${query}" (slug: ${slug})`);
     
+    // 1. Try search
     const searchResults = await searchAnime(query);
     
-    // Find the best match among search results
-    const match = searchResults.find(item => {
+    // Strategy A: Direct slug match on title
+    let match = searchResults.find(item => {
       if (!item.title) return false;
-      const itemSlug = generateSlug(item.title);
-      return itemSlug === slug.toLowerCase();
+      return generateSlug(item.title) === slug.toLowerCase();
     });
 
+    // Strategy B: Slug match on item URL (more reliable for source site parity)
+    if (!match) {
+      match = searchResults.find(item => {
+        if (!item.url) return false;
+        const itemSlug = item.url.split('/').filter(Boolean).pop()?.toLowerCase();
+        return itemSlug === slug.toLowerCase() || itemSlug === slug.replace(/pokmon/g, 'pokemon');
+      });
+    }
+
+    // Strategy C: First result if it's a very close title match
+    if (!match && searchResults.length > 0) {
+      const first = searchResults[0];
+      if (first.title && (first.title.toLowerCase().includes(query.toLowerCase()) || query.toLowerCase().includes(first.title.toLowerCase()))) {
+        match = first;
+      }
+    }
+
     if (match) {
-      console.log(`findAnimeBySlug: Found match in search results: ${match.url}`);
+      console.log(`findAnimeBySlug: Found match: ${match.url}`);
       const isMovieByUrl = /\/movies\//i.test(match.url);
       const isMovieByTitle = /movie|film|ova|special|theatrical|cinema/i.test(match.title || '');
       const isMovie = isMovieByUrl || isMovieByTitle;
       return { url: match.url, postId: match.postId, isMovie };
     }
 
-    // 2. Fallback: Check the first few pages of anime list as a backup
-    console.log(`findAnimeBySlug: Match not found in search, checking first page of anime list...`);
+    // 2. Fallback: Check anime list
     for (let page = 1; page <= 2; page++) {
       const response = await fetchAnimeList(page);
       const anime = response.items.find(item => {
         if (!item.title) return false;
-        return generateSlug(item.title) === slug.toLowerCase();
+        const s = generateSlug(item.title);
+        return s === slug.toLowerCase() || s === slug.replace(/pokmon/g, 'pokemon');
       });
       
       if (anime) {

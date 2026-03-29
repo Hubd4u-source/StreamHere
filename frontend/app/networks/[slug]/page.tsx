@@ -4,6 +4,8 @@ import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
 import { notFound } from "next/navigation";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { getNetworkAction } from "../../actions";
 
 interface NetworkPageProps {
   params: { slug: string };
@@ -169,64 +171,11 @@ export default async function NetworkPage({ params, searchParams }: NetworkPageP
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {items.map((item) => (
-            <NewAnimeCard
-              key={item.url}
-              url={item.url}
-              title={item.title}
-              image={item.image}
-              postId={item.postId}
-            />
-          ))}
-        </div>
-
-        {items.length === 0 && (
-          <div className="text-center py-20 space-y-6">
-            <div className="w-24 h-24 bg-bg-surface border border-border-subtle rounded-full flex items-center justify-center text-content-tertiary mx-auto">
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M6 4h12M6 20h12M6 12h12M6 16h12" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <p className="section-heading text-xl">No content found</p>
-              <p className="section-subtitle">
-                {query ? `We couldn't find any ${network.name} content matching your search.` : `There is no ${network.name} content available right now.`}
-              </p>
-            </div>
-            {query && (
-              <a 
-                href={`/networks/${slug}`}
-                className="btn-outline px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm inline-block"
-              >
-                Clear Search
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {items.length > 0 && (
-          <div className="flex justify-center items-center gap-6 pt-8">
-            {page > 1 && (
-              <a
-                href={`/networks/${slug}?page=${page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                className="btn-outline px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95"
-              >
-                Previous
-              </a>
-            )}
-            <span className="text-content-tertiary font-bold tracking-widest text-sm uppercase">
-              Page <span className="text-accent">{page}</span>
-            </span>
-            <a
-              href={`/networks/${slug}?page=${page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-              className="btn-primary px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl shadow-accent/20"
-            >
-              Next
-            </a>
-          </div>
-        )}
+        <InfiniteGrid 
+          initialItems={items} 
+          fetchAction={getNetworkAction.bind(null, slug, query)}
+          initialPage={page}
+        />
       </main>
 
       <NewBottomNav />

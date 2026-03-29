@@ -206,15 +206,22 @@ export default function SignInPage() {
                 </div>
               )}
 
-              <button
-                onClick={() => router.push('/')}
-                className="w-full flex items-center justify-center space-x-2 text-content-tertiary hover:text-white transition-all py-3 rounded-xl border border-border-subtle/50 hover:bg-bg-surface/50"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span className="font-bold text-xs uppercase tracking-widest">Back to Home</span>
-              </button>
+              <div className="flex flex-col space-y-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="w-full flex items-center justify-center space-x-2 text-content-tertiary hover:text-white transition-all py-3 rounded-xl border border-border-subtle/50 hover:bg-bg-surface/50"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span className="font-bold text-xs uppercase tracking-widest">Back to Home</span>
+                </button>
+
+                <div className="flex items-center justify-center space-x-6 text-[10px] font-bold uppercase tracking-widest text-content-tertiary/60">
+                  <Link href="/terms" className="hover:text-accent transition-colors">Terms of Service</Link>
+                  <Link href="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>

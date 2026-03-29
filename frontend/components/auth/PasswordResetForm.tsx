@@ -61,17 +61,17 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ onBack, on
           </svg>
         </div>
         <div className="space-y-4">
-          <h2 className="text-2xl font-serif italic text-white tracking-tight">Signal Received</h2>
+          <h2 className="text-2xl font-serif italic text-white tracking-tight">Email Sent</h2>
           <p className="text-content-tertiary text-sm leading-relaxed font-medium">
-            A recovery link has been dispatched to your terminal. <br/>
-            Please verify your inbox to proceed.
+            A password reset link has been sent to your email address. <br/>
+            Please check your inbox to proceed.
           </p>
         </div>
         <button
           onClick={onClose}
           className="w-full h-12 bg-accent text-bg-base font-black uppercase tracking-widest text-[10px] rounded-xl hover:shadow-2xl hover:shadow-accent/40 active:scale-[0.98] transition-all duration-500"
         >
-          Return to Portal
+          Return to Sign In
         </button>
       </div>
     );
@@ -91,7 +91,7 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ onBack, on
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-3">
           <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-[0.3em] text-content-tertiary ml-1">
-            Recovery Email
+            Email Address
           </label>
           <input
             {...register('email', {
@@ -116,7 +116,7 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ onBack, on
           disabled={isLoading}
           className="w-full h-12 bg-accent text-bg-base font-black uppercase tracking-widest text-[10px] rounded-xl hover:shadow-2xl hover:shadow-accent/40 active:scale-[0.98] transition-all duration-500"
         >
-          {isLoading ? 'Processing...' : 'Dispatch Reset Link'}
+          {isLoading ? 'Sending...' : 'Send Reset Link'}
         </button>
       </form>
 

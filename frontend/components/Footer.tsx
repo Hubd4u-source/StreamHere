@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="w-full mt-auto relative bg-bg-base border-t border-border-subtle z-40 overflow-hidden">
@@ -11,6 +13,11 @@ export default function Footer() {
         <p className="text-content-secondary text-[13px] font-medium tracking-wide">
           &copy; <span className="text-accent font-bold">2026</span> AMAI TV India. All Rights Reserved.
         </p>
+        <div className="flex items-center justify-center space-x-6 text-[10px] font-bold uppercase tracking-[0.2em] text-content-tertiary">
+          <Link href="/terms" className="hover:text-accent transition-colors">Terms</Link>
+          <Link href="/privacy" className="hover:text-accent transition-colors">Privacy</Link>
+          <Link href="/dmca" className="hover:text-accent transition-colors">DMCA</Link>
+        </div>
         <div className="max-w-2xl mx-auto space-y-2">
           <p className="text-[10px] text-content-tertiary uppercase tracking-[0.2em] font-bold opacity-60">Legal Disclaimer</p>
           <p className="text-[11px] text-content-tertiary leading-relaxed">

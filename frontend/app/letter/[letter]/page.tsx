@@ -4,6 +4,8 @@ import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { getLetterAction } from "../../actions";
 
 export async function generateMetadata({ params }: { params: { letter: string } }) {
   const displayLetter = params.letter === "0-9" ? "#" : params.letter.toUpperCase();
@@ -84,51 +86,11 @@ export default async function LetterPage({
           ))}
         </div>
 
-        <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-10">
-          {items.map((item) => (
-            <NewAnimeCard
-              key={item.url}
-              url={item.url}
-              title={item.title}
-              image={item.image}
-              postId={item.postId}
-              genres={[]}
-              year={2024}
-            />
-          ))}
-        </div>
-
-        {items.length === 0 && (
-          <div className="text-center py-24 space-y-4">
-            <div className="text-content-tertiary opacity-30">
-              <MagnifyingGlassIcon className="w-16 h-16 mx-auto" />
-            </div>
-            <p className="section-subtitle">
-              No anime found starting with {displayLetter}.
-            </p>
-          </div>
-        )}
-
-        {/* Pagination mb-8 to clear bottom nav */}
-        {items.length > 0 && (
-          <div className="flex justify-center items-center space-x-4 pt-8 border-t border-border-subtle/30">
-            {page > 1 && (
-              <a
-                href={`/letter/${params.letter}?page=${page - 1}`}
-                className="btn-outline"
-              >
-                Previous
-              </a>
-            )}
-            <span className="text-content-tertiary text-sm font-medium">Page {page}</span>
-            <a
-              href={`/letter/${params.letter}?page=${page + 1}`}
-              className="btn-primary"
-            >
-              Next
-            </a>
-          </div>
-        )}
+        <InfiniteGrid 
+          initialItems={items} 
+          fetchAction={getLetterAction.bind(null, displayLetter)}
+          initialPage={page}
+        />
       </main>
 
       <NewBottomNav />

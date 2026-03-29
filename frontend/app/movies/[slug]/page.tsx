@@ -1,4 +1,5 @@
-import { fetchMovieDetails, fetchAnimeList, BASE } from "@/server/scraper";
+import { fetchMovieDetails, fetchAnimeList, searchAnime, BASE } from "@/server/scraper";
+import { SeriesListItem } from "@/server/types";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
@@ -9,10 +10,35 @@ import { generateSlug } from "@/lib/utils";
 
 // Function to find movie by slug - simplified for performance as requested
 async function findMovieBySlug(slug: string): Promise<{ url: string; postId?: number } | null> {
-  // Use the direct movie URL construction for maximum speed
-  const movieUrl = `${BASE}/movies/${slug}/`;
-  console.log(`findMovieBySlug: Using direct movie URL: ${movieUrl}`);
-  return { url: movieUrl, postId: undefined };
+  try {
+    const query = slug.replace(/-/g, ' ');
+    console.log(`findMovieBySlug: Searching for movie: "${query}" (slug: ${slug})`);
+    
+    // 1. Try search
+    const searchResults = await searchAnime(query);
+    
+    // Find the best match among search results that is a movie
+    const match = searchResults.find((item: SeriesListItem) => {
+      if (!item.url || !item.url.includes('/movies/')) return false;
+      const itemSlug = item.url.split('/').filter(Boolean).pop()?.toLowerCase();
+      // Allow for pokemon/pokmon fuzzy match etc.
+      return itemSlug === slug.toLowerCase() || 
+             itemSlug === slug.replace(/pokmon/g, 'pokemon') ||
+             generateSlug(item.title || "") === slug.toLowerCase();
+    });
+
+    if (match) {
+      console.log(`findMovieBySlug: Found match: ${match.url}`);
+      return { url: match.url, postId: match.postId };
+    }
+
+    // fallback to direct construction if search fails
+    const movieUrl = `${BASE}/movies/${slug}/`;
+    return { url: movieUrl, postId: undefined };
+  } catch (error) {
+    console.error('Error finding movie by slug:', error);
+    return { url: `${BASE}/movies/${slug}/`, postId: undefined };
+  }
 }
 
 async function getData(slug: string) {

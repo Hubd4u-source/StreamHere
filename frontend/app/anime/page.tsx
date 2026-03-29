@@ -3,6 +3,8 @@ import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { getAnimeAction } from "../actions";
 
 export default async function AnimePage({ searchParams }: { searchParams: { page?: string } }) {
   const page = Number(searchParams?.page || 1);
@@ -21,38 +23,11 @@ export default async function AnimePage({ searchParams }: { searchParams: { page
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {items.map((item) => (
-            <NewAnimeCard
-              key={item.url}
-              url={item.url}
-              title={item.title}
-              image={item.image}
-              postId={item.postId}
-            />
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex justify-center items-center gap-6 pt-8">
-          {page > 1 && (
-            <a
-              href={`/anime?page=${page - 1}`}
-              className="btn-outline px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95"
-            >
-              Previous
-            </a>
-          )}
-          <span className="text-content-tertiary font-bold tracking-widest text-sm uppercase">
-            Page <span className="text-accent">{page}</span>
-          </span>
-          <a
-            href={`/anime?page=${page + 1}`}
-            className="btn-primary px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl shadow-accent/20"
-          >
-            Next
-          </a>
-        </div>
+        <InfiniteGrid 
+          initialItems={items} 
+          fetchAction={getAnimeAction}
+          initialPage={page}
+        />
       </main>
 
       <NewBottomNav />

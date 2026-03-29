@@ -4,6 +4,8 @@ import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { getMoviesAction } from "../actions";
 
 export default async function MoviesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);
@@ -77,52 +79,11 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
           </div>
         )}
 
-        <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {items.map((item) => (
-            <NewAnimeCard
-              key={item.url}
-              url={item.url}
-              title={item.title}
-              image={item.image}
-              postId={item.postId}
-              genres={["Movie"]}
-              year={2024}
-              episodeCount={1}
-            />
-          ))}
-        </div>
-
-        {items.length === 0 && (
-          <div className="text-center py-24 space-y-4">
-            <div className="text-content-tertiary opacity-30">
-              <MagnifyingGlassIcon className="w-16 h-16 mx-auto" />
-            </div>
-            <p className="section-subtitle">
-              {query ? "No movies found for your search." : "No movies available at the moment."}
-            </p>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {items.length > 0 && (
-          <div className="flex justify-center items-center space-x-4 pt-8 border-t border-border-subtle/30">
-            {page > 1 && (
-              <a
-                href={`/movies?page=${page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                className="btn-outline"
-              >
-                Previous
-              </a>
-            )}
-            <span className="text-content-tertiary text-sm font-medium">Page {page}</span>
-            <a
-              href={`/movies?page=${page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-              className="btn-primary"
-            >
-              Next
-            </a>
-          </div>
-        )}
+        <InfiniteGrid 
+          initialItems={items} 
+          fetchAction={getMoviesAction.bind(null, query)}
+          initialPage={page}
+        />
       </main>
 
       <NewBottomNav />

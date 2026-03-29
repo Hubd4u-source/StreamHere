@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import NewAnimeCard from "@/components/NewAnimeCard";
 import { SeriesListItem } from "@/server/types";
+import InfiniteGrid from "@/components/InfiniteGrid";
+import { getOngoingAction } from "../actions";
 
 interface OngoingSeriesClientProps {
   initialPage: number;
@@ -23,12 +24,8 @@ export default function OngoingSeriesClient({ initialPage, initialQuery }: Ongoi
     const loadOngoingSeries = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/ongoing?page=${page}&q=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setItems(data.items || []);
+        const data = await getOngoingAction(query, page);
+        setItems(data);
         setError(null);
       } catch (err) {
         console.error('Error loading ongoing series:', err);
@@ -130,64 +127,11 @@ export default function OngoingSeriesClient({ initialPage, initialQuery }: Ongoi
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-        {items.map((item) => (
-          <NewAnimeCard
-            key={item.url}
-            url={item.url}
-            title={item.title}
-            image={item.image}
-            postId={item.postId}
-          />
-        ))}
-      </div>
-
-      {items.length === 0 && (
-        <div className="text-center py-20 space-y-6">
-          <div className="w-24 h-24 bg-bg-surface border border-border-subtle rounded-full flex items-center justify-center text-content-tertiary mx-auto">
-            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M6 4h12M6 20h12M6 12h12M6 16h12" />
-            </svg>
-          </div>
-          <div className="space-y-2">
-            <p className="section-heading text-xl">No series found</p>
-            <p className="section-subtitle">
-              {query ? "We couldn't find any ongoing series matching your search." : "There are no ongoing series available right now."}
-            </p>
-          </div>
-          {query && (
-            <button 
-              onClick={() => { setQuery(""); setPage(1); router.push('/ongoing'); }}
-              className="btn-outline px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm"
-            >
-              Clear Search
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {items.length > 0 && (
-        <div className="flex justify-center items-center gap-6 pt-8">
-          {page > 1 && (
-            <button
-              onClick={() => handlePageChange(page - 1)}
-              className="btn-outline px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95"
-            >
-              Previous
-            </button>
-          )}
-          <span className="text-content-tertiary font-bold tracking-widest text-sm uppercase">
-            Page <span className="text-accent">{page}</span>
-          </span>
-          <button
-            onClick={() => handlePageChange(page + 1)}
-            className="btn-primary px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl shadow-accent/20"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <InfiniteGrid 
+        initialItems={items} 
+        fetchAction={getOngoingAction.bind(null, query)}
+        initialPage={page}
+      />
     </div>
   );
 }

@@ -64,7 +64,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
           <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary ml-1">
-            Account Identifier
+            Email Address
           </label>
           <div className="relative group">
             <input
@@ -88,7 +88,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
 
         <div className="space-y-4">
           <label htmlFor="password" className="block text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary ml-1">
-            Secure Credentials
+            Password
           </label>
           <div className="relative group">
             <input
@@ -136,9 +136,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-bg-base/30 border-t-bg-base rounded-full animate-spin"></div>
-                <span>Securing Access...</span>
+                <span>Signing in...</span>
               </>
-            ) : 'Authenticate Access'}
+            ) : 'Sign In'}
           </div>
         </button>
       </form>
@@ -146,7 +146,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
       <div className="space-y-6">
         <div className="relative flex items-center">
           <div className="flex-grow border-t border-border-subtle/30"></div>
-          <span className="flex-shrink mx-4 text-[10px] font-black uppercase tracking-[0.3em] text-content-tertiary">Third-party Gateway</span>
+          <span className="flex-shrink mx-4 text-[10px] font-black uppercase tracking-[0.3em] text-content-tertiary">Or continue with</span>
           <div className="flex-grow border-t border-border-subtle/30"></div>
         </div>
 
@@ -161,17 +161,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          <span className="text-xs uppercase tracking-widest">Connect with Google</span>
+          <span className="text-xs uppercase tracking-widest">Sign in with Google</span>
         </button>
 
         <div className="text-center">
           <p className="text-content-tertiary text-[13px] font-medium">
-            New to our universe?{' '}
+            New to AMAI TV?{' '}
             <button
               onClick={onSwitchToSignup}
               className="text-accent hover:underline font-bold transition-all ml-1"
             >
-              Initialize Account
+              Create Account
             </button>
           </p>
         </div>
