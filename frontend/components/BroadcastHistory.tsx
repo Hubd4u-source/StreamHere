@@ -58,9 +58,9 @@ export default function BroadcastHistory() {
          {(isExpanded || (!current?.enabled && history.length > 0)) && (
             <div className="p-6 bg-black/40 space-y-4">
                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Historical Transmission Log</p>
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Announcement History</p>
                   {!current?.enabled && (
-                     <span className="text-[9px] font-bold text-[#E8C97A] border border-[#E8C97A]/20 px-2 py-0.5 rounded">ARCHIVE_ONLY</span>
+                     <span className="text-[9px] font-bold text-accent border border-accent/20 px-2 py-0.5 rounded">ARCHIVE</span>
                   )}
                </div>
                

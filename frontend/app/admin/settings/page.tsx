@@ -28,7 +28,7 @@ export default function AdminSettingsPage() {
       setMessage({ text: 'System configuration updated successfully.', type: 'success' });
       setTimeout(() => setMessage(null), 5000);
     } catch (err) {
-      setMessage({ text: 'Protocol failure: Unable to write configuration.', type: 'error' });
+      setMessage({ text: 'Update failed: Unable to save configuration.', type: 'error' });
     } finally {
       setIsSaving(false);
     }
@@ -44,7 +44,7 @@ export default function AdminSettingsPage() {
     <div className="space-y-8 max-w-4xl mx-auto pb-20">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-           <h1 className="text-3xl font-serif font-black tracking-tighter text-white italic">Vault Config</h1>
+           <h1 className="text-3xl font-serif font-black tracking-tighter text-white italic">Site Configuration</h1>
            <p className="text-content-tertiary font-medium tracking-wide max-w-xl text-[10px] uppercase opacity-40">
              Configure core site parameters via the Firestore dynamic layer.
            </p>
@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
                  </div>
 
                  <div className="space-y-2">
-                    <label className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em] block pl-1">Neural Integration Key (TMDB)</label>
+                    <label className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em] block pl-1">TMDB API Integration Key</label>
                     <input
                       type="text"
                       value={settings?.tmdb_api_key || ''}
@@ -115,7 +115,7 @@ export default function AdminSettingsPage() {
                  >
                     <div className="text-left space-y-0.5">
                        <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${settings?.hide_schedule ? 'text-red-400' : 'text-white/30'}`}>Global Schedule</p>
-                       <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{settings?.hide_schedule ? 'DECOMMISSIONED' : 'OPERATIONAL'}</p>
+                       <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{settings?.hide_schedule ? 'DISABLED' : 'ACTIVE'}</p>
                     </div>
                     <div className={`w-8 h-4 relative transition-all ${settings?.hide_schedule ? 'bg-red-500' : 'bg-white/10'}`}>
                        <div className={`absolute top-0.5 w-3 h-3 bg-black transition-all ${settings?.hide_schedule ? 'left-4.5' : 'left-0.5'}`} />
@@ -133,7 +133,7 @@ export default function AdminSettingsPage() {
                  >
                     <div className="text-left space-y-0.5">
                        <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${settings?.hide_upcoming ? 'text-orange-400' : 'text-white/30'}`}>Upcoming Feed</p>
-                       <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{settings?.hide_upcoming ? 'DECOMMISSIONED' : 'OPERATIONAL'}</p>
+                       <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{settings?.hide_upcoming ? 'DISABLED' : 'ACTIVE'}</p>
                     </div>
                     <div className={`w-8 h-4 relative transition-all ${settings?.hide_upcoming ? 'bg-orange-500' : 'bg-white/10'}`}>
                        <div className={`absolute top-0.5 w-3 h-3 bg-black transition-all ${settings?.hide_upcoming ? 'left-4.5' : 'left-0.5'}`} />

@@ -39,7 +39,7 @@ export default function AdminSyncPage() {
     }
     setIsSyncing(true);
     setLogs([]);
-    addLog(`INITIALIZING_SYNC: TARGET=${targetCategory.toUpperCase()}, PAGES=${targetPages}, DEEP=${deepSync}`);
+    addLog(`STARTING SYNC: CATEGORY=${targetCategory.toUpperCase()}, PAGES=${targetPages}, DEEP_SCAN=${deepSync}`);
 
     try {
       const response = await fetch('/api/admin/bulk-sync', {
@@ -56,7 +56,7 @@ export default function AdminSyncPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Sync protocol failed with status: ${response.status}`);
+        throw new Error(`Synchronization failure with status: ${response.status}`);
       }
 
       const reader = response.body?.getReader();
@@ -85,9 +85,9 @@ export default function AdminSyncPage() {
           }
         }
       }
-      addLog('SYNC_COMPLETED: BROADCAST_SUCCESSFUL');
+      addLog('SYNC COMPLETED SUCCESSFULLY');
     } catch (error: any) {
-      addLog(`CRITICAL_ERROR: ${error.message}`);
+      addLog(`ERROR: ${error.message}`);
     } finally {
       setIsSyncing(false);
     }
@@ -181,7 +181,7 @@ export default function AdminSyncPage() {
                      isSyncing ? 'bg-white/5 text-white/20' : 'bg-[#E8C97A] text-black hover:bg-white'
                    }`}
                  >
-                    {isSyncing ? 'OPERATING...' : 'INITIATE BROADCAST'}
+                    {isSyncing ? 'SYNCHRONIZING...' : 'START SYNCHRONIZATION'}
                  </button>
                  <button 
                    onClick={clearCache}
@@ -206,11 +206,11 @@ export default function AdminSyncPage() {
                     </div>
                     <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.5em]">Live Monitoring Console</p>
                  </div>
-                 {isSyncing && <div className="text-[8px] font-black text-[#E8C97A] animate-pulse tracking-widest">UPLINK_ACTIVE</div>}
+                 {isSyncing && <div className="text-[8px] font-black text-[#E8C97A] animate-pulse tracking-widest">SYNCING_ACTIVE</div>}
               </div>
 
               <div ref={scrollRef} className="flex-1 p-6 font-mono text-[10px] space-y-1.5 overflow-y-auto custom-scrollbar-minimal bg-[#050505]">
-                 {logs.length === 0 && <p className="text-white/10 italic select-none">Waiting for uplink synchronization...</p>}
+                 {logs.length === 0 && <p className="text-white/10 italic select-none">Waiting for synchronization to start...</p>}
                  {logs.map((log, i) => (
                     <div key={i} className="flex gap-4 border-l border-white/5 pl-4 hover:border-[#E8C97A]/40 transition-colors">
                        <span className="text-white/10 shrink-0 select-none">[{i.toString().padStart(4, '0')}]</span>

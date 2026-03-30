@@ -42,7 +42,7 @@ export default function AdminBroadcastPage() {
         broadcast_type: type,
         broadcast_history: newHistory.slice(0, 10)
       });
-      alert('Broadcast protocol updated successfully.');
+      alert('Announcement settings updated successfully.');
     } catch (e) {
       alert('Failed to update broadcast settings.');
     } finally {
@@ -55,7 +55,7 @@ export default function AdminBroadcastPage() {
   return (
     <div className="space-y-8 max-w-2xl mx-auto pb-20">
       <header className="space-y-2">
-         <h1 className="text-3xl font-serif font-black tracking-tighter text-white italic">Broadcast Control</h1>
+         <h1 className="text-3xl font-serif font-black tracking-tighter text-white italic">Announcement Manager</h1>
          <p className="text-content-tertiary font-medium tracking-wide text-[10px] uppercase opacity-40">
            Global announcement & emergency notification system.
          </p>
@@ -65,8 +65,8 @@ export default function AdminBroadcastPage() {
          <div className="space-y-6">
             <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5">
                 <div>
-                   <p className="text-[10px] font-black text-white uppercase tracking-widest">Active Transmission</p>
-                   <p className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Toggle site-wide visibility</p>
+                   <p className="text-[10px] font-black text-white uppercase tracking-widest">Public Visibility</p>
+                   <p className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Toggle site-wide announcement</p>
                 </div>
                 <button 
                    onClick={() => setEnabled(!enabled)}
@@ -77,7 +77,7 @@ export default function AdminBroadcastPage() {
             </div>
 
             <div className="space-y-2">
-               <label className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] block pl-1">Message Payload</label>
+               <label className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] block pl-1">Message Content</label>
                <textarea 
                   value={message}
                   onChange={e => setMessage(e.target.value)}
@@ -117,7 +117,7 @@ export default function AdminBroadcastPage() {
                  }
                `}
             >
-               {isUpdating ? 'SYNCHRONIZING...' : 'UPDATE BROADCAST'}
+               {isUpdating ? 'SAVING CHANGES...' : 'UPDATE ANNOUNCEMENT'}
             </button>
          </div>
       </div>
@@ -133,7 +133,7 @@ export default function AdminBroadcastPage() {
             ${type === 'warning' ? 'bg-yellow-500/10 border-yellow-500 text-yellow-200' : ''}
             ${type === 'urgent' ? 'bg-red-500/10 border-red-500 text-red-200' : ''}
          `}>
-            {message || 'NO_PAYLOAD_DETECTED'}
+            {message || 'NO MESSAGE ENTERED'}
          </div>
       </div>
     </div>

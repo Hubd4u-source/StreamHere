@@ -4,7 +4,7 @@ export interface Achievement {
   description: string;
   icon: string;
   xpReward: number;
-  tier: 'free' | 'all'; // 'free' = available to free users, 'all' = all users
+  tier: 'free' | 'premium'; // 'free' = available to everyone, 'premium' = premium only
   condition: (ctx: AchievementContext) => boolean;
 }
 
@@ -72,7 +72,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 10 anime series',
     icon: '🎓',
     xpReward: 500,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.episodesCompleted >= 50
   },
   {
@@ -90,7 +90,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Achieve a 7-day login streak',
     icon: '💎',
     xpReward: 300,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.loginStreak >= 7
   },
   {
@@ -99,7 +99,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Achieve a 30-day login streak',
     icon: '🏅',
     xpReward: 1000,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.loginStreak >= 30
   },
   {
@@ -108,7 +108,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Watch 10 hours of anime',
     icon: '⏰',
     xpReward: 300,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.totalMinutesWatched >= 600
   },
   {
@@ -117,7 +117,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Watch 100 hours of anime',
     icon: '💯',
     xpReward: 1000,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.totalMinutesWatched >= 6000
   },
   {
@@ -126,7 +126,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Add 3 social links to your profile',
     icon: '🦋',
     xpReward: 200,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.socialLinksCount >= 3
   },
   {
@@ -135,7 +135,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Reach the global top 10',
     icon: '🏆',
     xpReward: 500,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.leaderboardPosition !== null && ctx.leaderboardPosition <= 10
   },
   {
@@ -144,7 +144,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Have an account for 30+ days',
     icon: '🎖️',
     xpReward: 250,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.accountAgeDays >= 30
   },
   {
@@ -153,7 +153,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Add 50 items to My List',
     icon: '🗄️',
     xpReward: 500,
-    tier: 'all',
+    tier: 'free',
     condition: (ctx) => ctx.myListCount >= 50
   }
 ];
@@ -181,7 +181,8 @@ export function checkAchievements(
 ): Achievement[] {
   return ACHIEVEMENTS.filter(a => {
     if (unlocked.includes(a.id)) return false;
-    if (a.tier === 'all' && ctx.tier === 'free') return false; // Premium-only
+    // 'free' = everyone, 'premium' = premium only
+    if (a.tier === 'premium' && ctx.tier === 'free') return false; 
     return a.condition(ctx);
   });
 }
