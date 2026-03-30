@@ -6,6 +6,15 @@ import NewAnimeCard from "@/components/NewAnimeCard";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import InfiniteGrid from "@/components/InfiniteGrid";
 import { getMoviesAction } from "../actions";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Anime Movies — Watch Free Online",
+  description:
+    "Watch anime movies and specials free online in HD on AMAI TV. Hindi dubbed and English subbed. New movies added regularly.",
+  alternates: { canonical: "https://amaitv.vercel.app/movies" },
+};
+
 
 export default async function MoviesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);

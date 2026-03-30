@@ -42,6 +42,7 @@ export async function generateMetadata(
   return {
     title: title,
     description: `Stream ${seriesTitle} ${episodeTitle} in High Quality on AMAI TV. Fast and free anime streaming experience.`,
+    robots: { index: false, follow: true },
     openGraph: {
       title: title,
       type: 'video.episode',

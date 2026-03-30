@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: false,
   images: {
     unoptimized: true,
   },
@@ -35,6 +36,26 @@ const nextConfig = {
           },
         ],
       },
+      // Cache static assets aggressively
+      {
+        source: '/:path*.(png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache Next.js image optimization output
+      {
+        source: '/_next/image(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+          },
+        ],
+      },
     ];
   },
   async rewrites() {
@@ -48,4 +69,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

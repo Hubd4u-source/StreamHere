@@ -2,6 +2,15 @@ import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import OngoingSeriesClient from "./OngoingSeriesClient";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Ongoing Anime Series — Currently Airing",
+  description:
+    "Watch currently airing anime series and ongoing shows on AMAI TV. Stay updated with the latest episodes in HD. Hindi dubbed and English subbed.",
+  alternates: { canonical: "https://amaitv.vercel.app/ongoing" },
+};
+
 
 export default function OngoingPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);

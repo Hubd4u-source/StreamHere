@@ -5,6 +5,13 @@ import NewAnimeCard from "@/components/NewAnimeCard";
 import { headers } from "next/headers";
 import InfiniteGrid from "@/components/InfiniteGrid";
 import { searchAnimeAction } from "../actions";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Search Anime",
+  robots: { index: false, follow: true },
+};
+
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const query = (searchParams?.q || "").trim();

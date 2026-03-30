@@ -12,6 +12,7 @@ import Tabs, { TabPanel } from "@/components/Tabs";
 import RelatedSeriesCard from "@/components/RelatedSeriesCard";
 import { notFound, redirect } from "next/navigation";
 import { generateSlug } from "@/lib/utils";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Metadata, ResolvingMetadata } from 'next';
 
 type Props = {
@@ -38,23 +39,34 @@ export async function generateMetadata(
   if (!data) return {};
 
   const title = data.title || decodeURIComponent(data.url.split('/').filter(Boolean).pop() || slug);
-  const description = data.synopsis ? 
-    data.synopsis.slice(0, 160) + "..." : 
-    `Watch ${title} Online in High Quality on AMAI TV. Free streaming of anime series and movies.`;
+  
+  // SEO-optimized description
+  const genreStr = data.genres?.slice(0, 3).join(', ') || 'Anime';
+  const yearStr = data.year ? ` (${data.year})` : '';
+  const langStr = data.languages?.length ? ` in ${data.languages.join(', ')}` : ' in Hindi Dubbed & English Subbed';
+  const description = data.synopsis
+    ? `Watch ${title}${yearStr} online free${langStr}. ${data.synopsis.replace(/<[^>]*>/g, '').slice(0, 120)}...`
+    : `Watch ${title}${yearStr} online free${langStr} on AMAI TV. ${genreStr} anime streaming in HD quality.`;
+
+  const seoTitle = `Watch ${title} Online Free${langStr}`;
 
   return {
-    title: `Watch ${title} Online in HD - AMAI TV`,
-    description: description,
+    title: seoTitle,
+    description: description.slice(0, 160),
+    alternates: {
+      canonical: `https://amaitv.vercel.app/title/${slug}`,
+    },
     openGraph: {
-      title: `Watch ${title} Online - AMAI TV`,
-      description: description,
-      images: data.poster ? [data.poster] : [],
+      title: seoTitle,
+      description: description.slice(0, 160),
+      images: data.poster ? [{ url: data.poster, width: 300, height: 450, alt: title }] : [],
       type: 'video.tv_show',
+      url: `https://amaitv.vercel.app/title/${slug}`,
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Watch ${title} Online - AMAI TV`,
-      description: description,
+      title: seoTitle,
+      description: description.slice(0, 160),
       images: data.poster ? [data.poster] : [],
     },
   };
@@ -191,6 +203,16 @@ export default async function TitlePage({
   const episodes = data?.episodes || [];
   const title = decodeURIComponent(data.url.split('/').filter(Boolean).pop() || slug);
   
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://amaitv.vercel.app" },
+      { "@type": "ListItem", position: 2, name: "Series", item: "https://amaitv.vercel.app/series" },
+      { "@type": "ListItem", position: 3, name: title },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-bg-base font-sans">
       <NewNavbar />
@@ -210,6 +232,11 @@ export default async function TitlePage({
       />
 
       <main className="w-full px-4 sm:px-6 md:px-10 lg:px-12 py-8 pb-32 space-y-12">
+        <Breadcrumbs items={[
+          { label: 'Home', href: '/' },
+          { label: 'Series', href: '/series' },
+          { label: title },
+        ]} />
 
         {/* Synopsis Section */}
         <section className="space-y-4 w-full">
@@ -311,12 +338,15 @@ export default async function TitlePage({
             "@context": "https://schema.org",
             "@type": "TVSeries",
             "name": title,
+            "url": `https://amaitv.vercel.app/title/${slug}`,
             "description": data.synopsis || `Watch ${title} online in high quality on AMAI TV.`,
             "image": data.poster ? [data.poster] : [],
             "genre": data.genres || [],
+            "inLanguage": data.languages || ["Hindi", "English", "Japanese"],
+            "countryOfOrigin": { "@type": "Country", "name": "Japan" },
             "startDate": data.year ? `${data.year}-01-01` : undefined,
             "numberOfEpisodes": data.totalEpisodes || data.episodes?.length,
-            "author": data.studio ? { "@type": "Organization", "name": data.studio } : undefined,
+            "productionCompany": data.studio ? { "@type": "Organization", "name": data.studio } : undefined,
             "aggregateRating": data.rating ? {
               "@type": "AggregateRating",
               "ratingValue": data.rating,
@@ -326,6 +356,10 @@ export default async function TitlePage({
             } : undefined
           }).replace(/</g, '\\u003c')
         }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       
       <NewBottomNav />

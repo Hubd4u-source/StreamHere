@@ -1,6 +1,15 @@
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Browse Anime by Genre — Action, Romance, Isekai & More",
+  description:
+    "Explore anime by genre on AMAI TV. Action, Romance, Isekai, Comedy, Fantasy, Horror and more. Watch free in HD with Hindi dubbed and English subbed.",
+  alternates: { canonical: "https://amaitv.vercel.app/genres" },
+};
+
 
 export default function GenresPage() {
   const genres = [

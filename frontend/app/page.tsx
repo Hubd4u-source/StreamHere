@@ -12,6 +12,30 @@ import HeroBanner from "@/components/HeroBanner";
 import BroadcastHistory from "@/components/BroadcastHistory";
 import { getFeaturedAnime } from "@/server/featured";
 import { settingsService } from "@/lib/settingsService";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Watch Anime Online Free — Hindi Dubbed, English Subbed | AMAI TV",
+  description:
+    "AMAI TV is your #1 source to watch anime online free. Hindi dubbed and English subbed in HD. New episodes daily — Naruto, Dragon Ball, Demon Slayer, and more.",
+  alternates: { canonical: "https://amaitv.vercel.app" },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "AMAI TV",
+  url: "https://amaitv.vercel.app",
+  description: "Watch anime online free in Hindi dubbed and English subbed",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://amaitv.vercel.app/search?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
 
 export default async function HomePage() {
   // Fetch featured items for hero
@@ -45,6 +69,10 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-bg-base text-content-primary font-sans selection:bg-accent/30 selection:text-accent">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
       <NewNavbar />
 
       <main className="w-full pb-32 space-y-24">

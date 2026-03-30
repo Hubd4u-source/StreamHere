@@ -6,6 +6,15 @@ import NewAnimeCard from "@/components/NewAnimeCard";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import InfiniteGrid from "@/components/InfiniteGrid";
 import { getAnimeAction } from "../actions";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "All Anime Series — Watch Free Online",
+  description:
+    "Browse all anime series available on AMAI TV. Filter by genre, year, and language. Stream free in HD with Hindi dubbed and English subbed options.",
+  alternates: { canonical: "https://amaitv.vercel.app/series" },
+};
+
 
 export default async function SeriesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);
