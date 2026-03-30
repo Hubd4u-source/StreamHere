@@ -301,7 +301,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {ACHIEVEMENTS.map((a) => {
               const isUnlocked = unlockedAchievements.includes(a.id);
-              const isLocked = a.tier === 'all' && !isPremium;
+              const isLocked = a.tier === 'premium' && !isPremium;
               return (
                 <div
                   key={a.id}
