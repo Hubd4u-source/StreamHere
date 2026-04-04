@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { fetchAnimeList, fetchMoviesList, fetchCartoonList } from "@/server/scraper";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
@@ -15,56 +17,73 @@ import CommunityFeedbackSection from "@/components/CommunityFeedbackSection";
 import { getFeaturedAnime } from "@/server/featured";
 import { settingsService } from "@/lib/settingsService";
 import { getLatestEpisodesFeed } from "@/lib/homeFeed";
-import type { Metadata } from "next";
+import { SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from "@/lib/siteConfig";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Watch Anime Online Free — Hindi Dubbed, English Subbed | AMAI TV",
-  description:
-    "AMAI TV is your #1 source to watch anime online free. Hindi dubbed and English subbed in HD. New episodes daily — Naruto, Dragon Ball, Demon Slayer, and more.",
-  alternates: { canonical: "https://amaitv.vercel.app" },
+  title: "Watch Anime Online Free - Hindi Dubbed, English Subbed | AMAI TV",
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: absoluteUrl("/") },
 };
+
+const browseLinks = [
+  { name: "Anime", href: "/anime", description: "Browse all anime titles" },
+  { name: "Series", href: "/series", description: "Explore full series libraries" },
+  { name: "Movies", href: "/movies", description: "Find anime movies and specials" },
+  { name: "Cartoons", href: "/cartoon", description: "Watch animated shows and family titles" },
+  { name: "Ongoing", href: "/ongoing", description: "Track currently airing episodes" },
+  { name: "Upcoming", href: "/upcoming", description: "See what releases next" },
+  { name: "Genres", href: "/genres", description: "Jump into action, romance, fantasy, and more" },
+  { name: "Schedule", href: "/schedule", description: "Follow daily release timing" },
+];
 
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "AMAI TV",
-  url: "https://amaitv.vercel.app",
-  description: "Watch anime online free in Hindi dubbed and English subbed",
+  "@id": `${absoluteUrl("/")}#website`,
+  name: SITE_NAME,
+  alternateName: "AmaiTV",
+  url: absoluteUrl("/"),
+  description: SITE_DESCRIPTION,
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://amaitv.vercel.app/search?q={search_term_string}",
+      urlTemplate: `${absoluteUrl("/search")}?q={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },
 };
 
+const collectionPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: `${SITE_NAME} Browse Hub`,
+  url: absoluteUrl("/"),
+  description: "Browse anime, series, movies, cartoons, schedules, and genre collections on AMAI TV.",
+  isPartOf: { "@id": `${absoluteUrl("/")}#website` },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: browseLinks.map((link, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: link.name,
+      url: absoluteUrl(link.href),
+    })),
+  },
+};
+
 export default async function HomePage() {
-  // Fetch featured items for hero
   const featuredItems = await getFeaturedAnime();
-
-  // Fetch dynamic settings
   const settings = await settingsService.getSettings();
-
-  // Fetch trending anime
   const trendingData = await fetchAnimeList(1);
   const trendingAnime = trendingData.items?.slice(0, 10) || [];
-
-  // Fetch latest episodes
   const latestAnime = await getLatestEpisodesFeed(12);
-
-  // Fetch popular anime
   const popularData = await fetchAnimeList(3);
   const popularAnime = popularData.items?.slice(0, 10) || [];
-
-  // Fetch top movies
   const moviesData = await fetchMoviesList(1);
   const moviesList = moviesData.items?.slice(0, 10) || [];
-
-  // Fetch popular cartoons
   const cartoonsData = await fetchCartoonList(1);
   const cartoonsList = cartoonsData.items?.slice(0, 10) || [];
 
@@ -74,48 +93,97 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageSchema) }}
+      />
       <NewNavbar />
 
       <main className="w-full pb-32 space-y-24">
-        {/* Hero Banner Section */}
         <HeroBanner initialItems={featuredItems} />
 
-        {/* Global Broadcast History */}
+        <section className="px-4 md:px-8">
+          <div className="mx-auto max-w-6xl border border-border-subtle bg-bg-surface/80">
+            <div className="border-b border-border-subtle px-4 py-4 sm:px-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-accent">Browse AMAI TV</p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="space-y-2">
+                  <h1 className="section-heading text-3xl md:text-4xl">
+                    Watch anime, movies, cartoons, and latest episodes
+                  </h1>
+                  <p className="max-w-3xl text-sm text-content-secondary md:text-base">
+                    Strong category pages help mobile users browse faster and give search engines clearer paths into the AMAI TV library.
+                  </p>
+                </div>
+                <Link
+                  href="/search"
+                  className="inline-flex h-11 items-center justify-center border border-accent/40 px-5 text-[11px] font-bold uppercase tracking-[0.28em] text-accent transition-colors hover:bg-accent/10"
+                >
+                  Search Titles
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4">
+              {browseLinks.map((link, index) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={[
+                    "group flex min-h-[122px] flex-col justify-between px-4 py-4 transition-colors hover:bg-bg-elevated",
+                    "border-border-subtle",
+                    index < browseLinks.length - 2 ? "border-b" : "",
+                    index % 2 === 0 ? "border-r sm:border-r" : "",
+                    index < 4 ? "sm:border-b" : "",
+                    index % 4 !== 3 ? "sm:border-r" : "",
+                  ].join(" ")}
+                >
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-accent/80">Section</p>
+                    <h2 className="text-lg font-bold text-content-primary transition-colors group-hover:text-accent">
+                      {link.name}
+                    </h2>
+                    <p className="text-xs leading-5 text-content-secondary sm:text-[13px]">
+                      {link.description}
+                    </p>
+                  </div>
+                  <span className="mt-4 text-[10px] font-bold uppercase tracking-[0.26em] text-content-tertiary group-hover:text-accent">
+                    Open
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <BroadcastHistory />
 
         <div className="px-4 md:px-8 space-y-24">
-          {/* Continue Watching */}
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <ContinueWatchingHome />
           </div>
 
-          {/* Recently Watched */}
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <RecentlyWatchedHome />
           </div>
         </div>
 
-
-
-        {/* Ongoing Series Section */}
         <section>
-          <NewCarousel 
-            title="Ongoing Series" 
-            subtitle="Currently airing series and new shows" 
-            showViewAll 
+          <NewCarousel
+            title="Ongoing Series"
+            subtitle="Currently airing series and new shows"
+            showViewAll
             viewAllHref="/ongoing"
           >
             <OngoingSeriesGrid />
           </NewCarousel>
         </section>
 
-        {/* Upcoming Episodes Section */}
         {!settings.hide_upcoming && (
           <section>
-            <NewCarousel 
-              title="Upcoming Episodes" 
-              subtitle="Coming soon with real-time countdowns" 
-              showViewAll 
+            <NewCarousel
+              title="Upcoming Episodes"
+              subtitle="Coming soon with real-time countdowns"
+              showViewAll
               viewAllHref="/upcoming"
             >
               <UpcomingEpisodesGrid />
@@ -123,7 +191,6 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Trending Now */}
         <section>
           <NewCarousel title="Trending Now" subtitle="The most watched titles this week">
             {trendingAnime.map((anime, index) => (
@@ -143,12 +210,10 @@ export default async function HomePage() {
           </NewCarousel>
         </section>
 
-        {/* Latest Episodes */}
         <section>
           <LatestEpisodesShelf initialItems={latestAnime} />
         </section>
 
-        {/* Popular Series */}
         <section>
           <NewCarousel title="Popular Series" subtitle="Fan favorites and essential classics" showViewAll viewAllHref="/anime">
             {popularAnime.map((anime) => (
@@ -168,7 +233,6 @@ export default async function HomePage() {
           </NewCarousel>
         </section>
 
-        {/* Top Movies */}
         {moviesList.length > 0 && (
           <section>
             <NewCarousel title="Top Movies" subtitle="Cinematic masterpieces and latest hits" showViewAll viewAllHref="/movies">
@@ -190,7 +254,6 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Popular Cartoons */}
         {cartoonsList.length > 0 && (
           <section>
             <NewCarousel title="Popular Cartoons" subtitle="Animated adventures for everyone" showViewAll viewAllHref="/cartoon">
@@ -213,9 +276,8 @@ export default async function HomePage() {
 
         <CommunityFeedbackSection />
 
-        {/* Navigate A to Z Section */}
         <section className="pb-16">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <h2 className="section-heading text-3xl md:text-4xl">Navigate A to Z</h2>
               <p className="section-subtitle text-lg">Find anime by its starting letter</p>
@@ -226,27 +288,29 @@ export default async function HomePage() {
               <a
                 key={letter}
                 href={`/letter/${letter === "#" ? "0-9" : letter}`}
-                className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-bg-surface border border-border-subtle rounded-xl sm:rounded-2xl hover:border-accent hover:bg-accent/10 hover:text-accent hover:scale-105 transition-all duration-300 font-bold text-sm sm:text-base lg:text-lg text-content-primary shadow-sm hover:shadow-accent/20"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-subtle bg-bg-surface text-sm font-bold text-content-primary shadow-sm transition-all duration-300 hover:scale-105 hover:border-accent hover:bg-accent/10 hover:text-accent hover:shadow-accent/20 sm:h-12 sm:w-12 sm:rounded-2xl sm:text-base lg:h-14 lg:w-14 lg:text-lg"
               >
                 {letter}
               </a>
             ))}
           </div>
         </section>
-        {/* Legal Notice Section */}
+
         <section className="border-t border-border-subtle/30 pt-16 pb-8">
-          <div className="max-w-4xl mx-auto text-center space-y-6 px-4">
-             <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/20 rounded-full">
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Legal Notice</span>
-             </div>
-             <h3 className="text-xl md:text-2xl font-bold text-white">Disclaimer of Liability</h3>
-             <p className="text-content-secondary text-sm md:text-base leading-relaxed italic">
-               &quot;Amai Tv India does not store any files on its own server. We only index links from the internet which are hosted on third-party services. We index links just like Google. We are not responsible for any activities conducted on this site or external platforms.&quot;
-             </p>
-             <div className="pt-4">
-                <a href="/dmca" className="text-accent hover:underline text-xs font-medium uppercase tracking-widest">Read Full DMCA Policy</a>
-             </div>
+          <div className="mx-auto max-w-4xl space-y-6 px-4 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Legal Notice</span>
+            </div>
+            <h3 className="text-xl font-bold text-white md:text-2xl">Disclaimer of Liability</h3>
+            <p className="text-sm italic leading-relaxed text-content-secondary md:text-base">
+              &quot;Amai Tv India does not store any files on its own server. We only index links from the internet which are hosted on third-party services. We index links just like Google. We are not responsible for any activities conducted on this site or external platforms.&quot;
+            </p>
+            <div className="pt-4">
+              <a href="/dmca" className="text-xs font-medium uppercase tracking-widest text-accent hover:underline">
+                Read Full DMCA Policy
+              </a>
+            </div>
           </div>
         </section>
       </main>
@@ -256,5 +320,3 @@ export default async function HomePage() {
     </div>
   );
 }
-
-

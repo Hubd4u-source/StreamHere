@@ -683,3 +683,73 @@ All paths below are relative to `C:\Users\Firda\Videos\StreamHere-main`.
 
 ### Known Issues / Watch Points
 - `.codex-backups/pre-analysis-20260402-194404.bundle` and `.codex-backups/workspace-backup-20260402-194101.zip` are still local-only and intentionally excluded from GitHub
+
+## Session: 2026-04-04 11:09:00 +05:30
+### Codebase Snapshot
+- Files analyzed:
+  - `frontend/app/layout.tsx`
+  - `frontend/app/page.tsx`
+  - `frontend/app/robots.ts`
+  - `frontend/app/sitemap.ts`
+  - `frontend/app/manifest.ts`
+  - `frontend/app/anime/page.tsx`
+  - `frontend/app/genres/page.tsx`
+  - `frontend/app/movies/page.tsx`
+  - `frontend/app/ongoing/page.tsx`
+  - `frontend/app/series/page.tsx`
+  - `frontend/app/title/[slug]/page.tsx`
+  - `frontend/lib/seoUtils.ts`
+  - `frontend/lib/siteConfig.ts`
+  - `frontend/vercel.json`
+  - `frontend/.env.local`
+- Key dependencies:
+  - Next.js metadata API
+  - JSON-LD `WebSite`, `CollectionPage`, and `Organization` schema
+  - Dynamic sitemap and robots generation
+  - `NEXT_PUBLIC_SITE_URL` support via `frontend/lib/siteConfig.ts`
+- Integration points:
+  - Homepage metadata and structured data now share one canonical site URL source
+  - Sitemap, robots, title pages, and browse routes now inherit the same site URL helper
+  - Homepage includes a crawlable browse hub linking search-critical sections such as `/anime`, `/series`, `/movies`, `/ongoing`, `/genres`, and `/schedule`
+
+### Changes Made
+- `frontend/lib/siteConfig.ts` -> added a shared site URL and brand config layer with `NEXT_PUBLIC_SITE_URL` support and absolute URL helpers
+- `frontend/app/layout.tsx` -> unified global metadata, organization schema, Open Graph, Twitter, canonical, manifest, and app-name fields around the shared site config
+- `frontend/app/page.tsx` -> strengthened homepage metadata, added `WebSite` and `CollectionPage` schema, and added a visible browse hub to expose major site sections for both users and crawlers
+- `frontend/app/robots.ts` -> switched sitemap and host values to the shared site config
+- `frontend/app/sitemap.ts` -> switched the base sitemap URL to the shared site config
+- `frontend/app/manifest.ts` -> normalized app naming and added shortcuts for major browse sections
+- `frontend/app/anime/page.tsx` -> added route metadata and canonical URL
+- `frontend/app/genres/page.tsx` -> updated canonical URL and normalized the page title
+- `frontend/app/movies/page.tsx` -> updated canonical URL and normalized the page title
+- `frontend/app/ongoing/page.tsx` -> updated canonical URL and normalized the page title
+- `frontend/app/series/page.tsx` -> updated canonical URL and normalized the page title
+- `frontend/app/title/[slug]/page.tsx` -> updated canonical URLs, Open Graph URL, breadcrumb schema URLs, and TV series schema URL
+- `frontend/lib/seoUtils.ts` -> switched canonical generation to the shared site config and normalized title separators
+- `PROJECT_MEMORY.md` -> logged the SEO/search-surface work and verification result
+- Status: Working
+
+### Backups Created
+- `frontend/app/layout.tsx` -> `.codex-backups/layout.tsx.backup-20260404-105259`
+- `frontend/app/page.tsx` -> `.codex-backups/page.tsx.backup-20260404-105259`
+- `frontend/app/robots.ts` -> `.codex-backups/robots.ts.backup-20260404-105259`
+- `frontend/app/sitemap.ts` -> `.codex-backups/sitemap.ts.backup-20260404-105259`
+- `frontend/app/manifest.ts` -> `.codex-backups/manifest.ts.backup-20260404-105259`
+- `frontend/lib/seoUtils.ts` -> `.codex-backups/seoUtils.ts.backup-20260404-105259`
+- `frontend/app/genres/page.tsx` -> `.codex-backups/genres.page.tsx.backup-20260404-105310`
+- `frontend/app/movies/page.tsx` -> `.codex-backups/movies.page.tsx.backup-20260404-105310`
+- `frontend/app/ongoing/page.tsx` -> `.codex-backups/ongoing.page.tsx.backup-20260404-105310`
+- `frontend/app/series/page.tsx` -> `.codex-backups/series.page.tsx.backup-20260404-105310`
+- `frontend/app/title/[slug]/page.tsx` -> `.codex-backups/title.slug.page.tsx.backup-20260404-105310`
+- `frontend/app/anime/page.tsx` -> `.codex-backups/anime.page.tsx.backup-20260404-110119`
+- `PROJECT_MEMORY.md` -> `.codex-backups/PROJECT_MEMORY.md.backup-20260404-105259`
+
+### What's Currently Working
+- Frontend production build completed successfully after the SEO changes
+- Homepage, browse routes, title pages, sitemap, robots, and manifest now emit stronger brand-consistent metadata
+- The app can now be pointed at a custom production domain later by setting `NEXT_PUBLIC_SITE_URL` without rewriting the SEO layer again
+
+### Known Issues / Watch Points
+- These changes improve search appearance signals, but they cannot guarantee first-place Google rankings by themselves
+- The live site still needs a stable branded production domain and Search Console indexing work if you want Google to stop preferring the Vercel-hosted identity
+- Build logs still show the existing empty root `package-lock.json` parse warning and outdated `browserslist` data warnings

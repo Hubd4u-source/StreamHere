@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { SITE_URL, absoluteUrl } from "@/lib/siteConfig";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -32,7 +33,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://amaitv.vercel.app/sitemap.xml',
-    host: 'https://amaitv.vercel.app',
+    sitemap: absoluteUrl('/sitemap.xml'),
+    host: SITE_URL,
   };
 }

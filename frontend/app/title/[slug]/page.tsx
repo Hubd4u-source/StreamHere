@@ -14,6 +14,7 @@ import { notFound, redirect } from "next/navigation";
 import { generateSlug } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Metadata, ResolvingMetadata } from 'next';
+import { absoluteUrl } from "@/lib/siteConfig";
 
 type Props = {
   params: { slug: string };
@@ -54,14 +55,14 @@ export async function generateMetadata(
     title: seoTitle,
     description: description.slice(0, 160),
     alternates: {
-      canonical: `https://amaitv.vercel.app/title/${slug}`,
+      canonical: absoluteUrl(`/title/${slug}`),
     },
     openGraph: {
       title: seoTitle,
       description: description.slice(0, 160),
       images: data.poster ? [{ url: data.poster, width: 300, height: 450, alt: title }] : [],
       type: 'video.tv_show',
-      url: `https://amaitv.vercel.app/title/${slug}`,
+      url: absoluteUrl(`/title/${slug}`),
     },
     twitter: {
       card: 'summary_large_image',
@@ -207,8 +208,8 @@ export default async function TitlePage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://amaitv.vercel.app" },
-      { "@type": "ListItem", position: 2, name: "Series", item: "https://amaitv.vercel.app/series" },
+      { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Series", item: absoluteUrl("/series") },
       { "@type": "ListItem", position: 3, name: title },
     ],
   };
@@ -338,7 +339,7 @@ export default async function TitlePage({
             "@context": "https://schema.org",
             "@type": "TVSeries",
             "name": title,
-            "url": `https://amaitv.vercel.app/title/${slug}`,
+            "url": absoluteUrl(`/title/${slug}`),
             "description": data.synopsis || `Watch ${title} online in high quality on AMAI TV.`,
             "image": data.poster ? [data.poster] : [],
             "genre": data.genres || [],

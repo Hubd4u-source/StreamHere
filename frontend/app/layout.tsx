@@ -6,6 +6,7 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import Footer from "@/components/Footer";
 import BroadcastBanner from "@/components/BroadcastBanner";
 import FirstVisitSignInPrompt from "@/components/FirstVisitSignInPrompt";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, absoluteUrl } from "@/lib/siteConfig";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -23,13 +24,13 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://amaitv.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "AMAI TV — Watch Anime Online Free | Hindi Dubbed & Subbed",
+    default: `${SITE_NAME} - ${SITE_TAGLINE}`,
     template: "%s | AMAI TV",
   },
-  description:
-    "Watch anime online free in HD. Hindi dubbed, English subbed, and Japanese audio. Stream Naruto, Dragon Ball, One Piece, Demon Slayer, Classroom of the Elite and 1000+ more series on AMAI TV.",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: [
     "watch anime online",
     "anime hindi dubbed",
@@ -43,9 +44,10 @@ export const metadata: Metadata = {
     "anime movies",
     "watch anime online free",
   ],
-  authors: [{ name: "AMAI TV", url: "https://amaitv.vercel.app" }],
-  creator: "AMAI TV",
-  publisher: "AMAI TV",
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "anime streaming",
   robots: {
     index: true,
     follow: true,
@@ -60,8 +62,6 @@ export const metadata: Metadata = {
   verification: {
     google: "FzT9B60wUVMnAUfsQJ6P4Yhi0R0Uqt4uXJgyZyyQAeI",
   },
-
-  // ── FAVICON / ICONS ──────────────────────────────────
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -70,43 +70,39 @@ export const metadata: Metadata = {
       { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon-144x144.png", sizes: "144x144", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/favicon.ico",
   },
-
-  // ── OPEN GRAPH ─────────────────────────────────────
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: SITE_NAME,
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://amaitv.vercel.app",
-    siteName: "AMAI TV",
-    title: "AMAI TV — Watch Anime Online Free | Hindi Dubbed & Subbed",
-    description:
-      "Stream 1000+ anime series in Hindi dubbed and English subbed for free. HD quality, no ads. New episodes daily.",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/og-image.png",
+        url: absoluteUrl("/og-image.png"),
         width: 1200,
         height: 630,
-        alt: "AMAI TV — Free Anime Streaming in Hindi Dubbed & English Subbed",
+        alt: `${SITE_NAME} - Free Anime Streaming in Hindi Dubbed and English Subbed`,
       },
     ],
   },
-
-  // ── TWITTER CARD ─────────────────────────────────────
   twitter: {
     card: "summary_large_image",
-    title: "AMAI TV — Watch Anime Online Free",
-    description:
-      "Stream 1000+ anime series in Hindi dubbed and English subbed for free. HD quality.",
-    images: ["/og-image.png"],
+    title: `${SITE_NAME} - Watch Anime Online Free`,
+    description: SITE_DESCRIPTION,
+    images: [absoluteUrl("/og-image.png")],
   },
-
-  // ── CANONICAL ─────────────────────────────────────
   alternates: {
-    canonical: "https://amaitv.vercel.app",
+    canonical: SITE_URL,
   },
 };
 
@@ -120,11 +116,13 @@ export const viewport = {
 const orgSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "AMAI TV",
-  url: "https://amaitv.vercel.app",
-  logo: "https://amaitv.vercel.app/Logo.jpg",
-  description:
-    "Watch anime online free in Hindi dubbed and English subbed. HD quality streaming.",
+  "@id": `${SITE_URL}#organization`,
+  name: SITE_NAME,
+  alternateName: "AmaiTV",
+  url: SITE_URL,
+  logo: absoluteUrl("/Logo.jpg"),
+  description: SITE_DESCRIPTION,
+  sameAs: ["https://instagram.com/exe_faizan"],
 };
 
 export default function RootLayout({
@@ -157,9 +155,7 @@ export default function RootLayout({
           <SettingsProvider>
             <BroadcastBanner />
             <FirstVisitSignInPrompt />
-            <div className="flex-1 flex flex-col">
-              {children}
-            </div>
+            <div className="flex-1 flex flex-col">{children}</div>
             <Footer />
           </SettingsProvider>
         </AuthProvider>

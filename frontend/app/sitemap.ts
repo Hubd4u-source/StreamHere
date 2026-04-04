@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next';
+import { absoluteUrl } from "@/lib/siteConfig";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://amaitv.vercel.app';
+  const baseUrl = absoluteUrl('/');
 
   // ── Static pages ──────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [

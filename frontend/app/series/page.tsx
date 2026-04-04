@@ -1,37 +1,36 @@
+import type { Metadata } from "next";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { fetchAnimeList } from "@/server/scraper";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
-import NewAnimeCard from "@/components/NewAnimeCard";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import InfiniteGrid from "@/components/InfiniteGrid";
 import { getAnimeAction } from "../actions";
-import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/siteConfig";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "All Anime Series — Watch Free Online",
+  title: "All Anime Series - Watch Free Online",
   description:
     "Browse all anime series available on AMAI TV. Filter by genre, year, and language. Stream free in HD with Hindi dubbed and English subbed options.",
-  alternates: { canonical: "https://amaitv.vercel.app/series" },
+  alternates: { canonical: absoluteUrl("/series") },
 };
-
 
 export default async function SeriesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);
   const query = searchParams?.q || "";
-  
+
   let data;
   let error = null;
-  
+
   try {
     data = await fetchAnimeList(page);
   } catch (err) {
-    console.error('Error fetching series:', err);
-    error = err instanceof Error ? err.message : 'Unknown error occurred';
+    console.error("Error fetching series:", err);
+    error = err instanceof Error ? err.message : "Unknown error occurred";
   }
-  
+
   const items = data?.items || [];
 
   if (error) {
@@ -43,7 +42,7 @@ export default async function SeriesPage({ searchParams }: { searchParams: { pag
             <h1 className="section-heading text-4xl">Series</h1>
             <p className="section-subtitle">Discover and watch your favorite anime series</p>
           </div>
-          
+
           <div className="bg-bg-surface border border-border-subtle rounded-md p-8 text-center max-w-2xl mx-auto">
             <h3 className="section-heading text-xl mb-4">Error Loading Series</h3>
             <p className="text-content-secondary mb-6">{error}</p>
@@ -59,14 +58,13 @@ export default async function SeriesPage({ searchParams }: { searchParams: { pag
   return (
     <div className="min-h-screen bg-bg-base font-sans">
       <NewNavbar />
-      
+
       <main className="w-full px-5 md:px-12 py-12 space-y-16 pb-32">
         <div className="text-center space-y-3">
           <h1 className="section-heading text-4xl">Series</h1>
           <p className="section-subtitle">Discover and watch your favorite anime series</p>
         </div>
 
-        {/* Search Bar */}
         <div className="max-w-[520px] mx-auto">
           <form method="get" className="relative group/search">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-content-tertiary group-focus-within/search:text-accent transition-colors">
@@ -90,11 +88,7 @@ export default async function SeriesPage({ searchParams }: { searchParams: { pag
           </div>
         )}
 
-        <InfiniteGrid 
-          initialItems={items} 
-          fetchAction={getAnimeAction}
-          initialPage={page}
-        />
+        <InfiniteGrid initialItems={items} fetchAction={getAnimeAction} initialPage={page} />
       </main>
 
       <NewBottomNav />
