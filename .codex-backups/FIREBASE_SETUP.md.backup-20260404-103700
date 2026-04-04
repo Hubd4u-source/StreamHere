@@ -73,80 +73,24 @@ npm install firebase
 
 ## Step 7: Set Up Firestore Security Rules
 
-In the Firebase Console, go to "Firestore Database" > "Rules" and use rules that match the AMAI TV collections. The version below keeps your current app behavior and adds the missing `communityFeedback` permissions so signed-in users can post feedback and all visitors can read the public board:
+In the Firebase Console, go to "Firestore Database" > "Rules" and replace the default rules with:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isSignedIn() && request.auth.uid == "sf1MEwZ8KOME15feZVZ5j7Fajr13";
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // 1. ANIME CATALOG (cache)
-    match /animes/{animeId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    match /animes {
-      allow list: if true;
-    }
-
-    // 2. SITE SETTINGS
-    match /system/settings {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // 3. PUBLIC COMMUNITY FEEDBACK BOARD
-    match /communityFeedback/{feedbackId} {
-      allow read: if true;
-
-      allow create: if isSignedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.message is string
-        && request.resource.data.message.size() > 0
-        && request.resource.data.message.size() <= 280
-        && request.resource.data.type in ["feedback", "idea", "bug"]
-        && request.resource.data.userName is string
-        && request.resource.data.createdAtMs is int;
-
-      allow update, delete: if isAdmin();
-    }
-
-    // 4. USER DATA
+    // Users can read and write their own data
     match /users/{userId} {
-      allow read: if true;
-      allow write: if isOwner(userId) || isAdmin();
-
-      match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to user's subcollections
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-    }
-
-    match /users {
-      allow list: if true;
-    }
-
-    // 5. Global fallback for admin
-    match /{document=**} {
-      allow read, write: if isAdmin();
     }
   }
 }
 ```
-
-If you publish those rules, the `Missing or insufficient permissions` error for community feedback posts should stop for signed-in users.
 
 ## Step 8: Configure OAuth Consent Screen (for Google Sign-in)
 

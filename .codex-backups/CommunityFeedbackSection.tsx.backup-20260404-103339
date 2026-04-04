@@ -66,7 +66,7 @@ function formatFeedbackDate(createdAtMs: number) {
 }
 
 export default function CommunityFeedbackSection() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [type, setType] = useState<FeedbackType>("feedback");
   const [items, setItems] = useState<FeedbackItem[]>([]);
@@ -76,17 +76,10 @@ export default function CommunityFeedbackSection() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
-
     if (!isFirebaseConfigured) {
-      setItems([]);
       setLoading(false);
       return;
     }
-
-    setLoading(true);
 
     const feedbackQuery = query(
       collection(db, "communityFeedback"),
@@ -112,7 +105,7 @@ export default function CommunityFeedbackSection() {
     );
 
     return () => unsubscribe();
-  }, [authLoading, user]);
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

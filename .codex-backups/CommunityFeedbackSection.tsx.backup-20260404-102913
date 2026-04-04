@@ -66,7 +66,7 @@ function formatFeedbackDate(createdAtMs: number) {
 }
 
 export default function CommunityFeedbackSection() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [type, setType] = useState<FeedbackType>("feedback");
   const [items, setItems] = useState<FeedbackItem[]>([]);
@@ -76,17 +76,10 @@ export default function CommunityFeedbackSection() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
-
     if (!isFirebaseConfigured) {
-      setItems([]);
       setLoading(false);
       return;
     }
-
-    setLoading(true);
 
     const feedbackQuery = query(
       collection(db, "communityFeedback"),
@@ -112,7 +105,7 @@ export default function CommunityFeedbackSection() {
     );
 
     return () => unsubscribe();
-  }, [authLoading, user]);
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -192,8 +185,7 @@ export default function CommunityFeedbackSection() {
                   href="https://instagram.com/exe_faizan"
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Open developer Instagram profile"
-                  className="group block w-full border border-border-subtle bg-bg-surface/65 px-4 py-4 transition-colors duration-300 hover:border-accent/35 hover:bg-bg-surface"
+                  className="group border border-border-subtle bg-bg-surface/65 px-4 py-4 transition-colors duration-300 hover:border-accent/35 hover:bg-bg-surface"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -202,7 +194,7 @@ export default function CommunityFeedbackSection() {
                       </p>
                       <h3 className="mt-2 text-lg font-semibold text-white">@exe_faizan</h3>
                     </div>
-                    <span className="pointer-events-none border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-accent">
+                    <span className="border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-accent">
                       Open
                     </span>
                   </div>

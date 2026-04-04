@@ -66,7 +66,7 @@ function formatFeedbackDate(createdAtMs: number) {
 }
 
 export default function CommunityFeedbackSection() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [type, setType] = useState<FeedbackType>("feedback");
   const [items, setItems] = useState<FeedbackItem[]>([]);
@@ -76,17 +76,10 @@ export default function CommunityFeedbackSection() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
-
     if (!isFirebaseConfigured) {
-      setItems([]);
       setLoading(false);
       return;
     }
-
-    setLoading(true);
 
     const feedbackQuery = query(
       collection(db, "communityFeedback"),
@@ -106,13 +99,13 @@ export default function CommunityFeedbackSection() {
       },
       (snapshotError) => {
         console.error("Failed to subscribe to community feedback:", snapshotError);
-        setItems([]);
+        setError("Community feedback is temporarily unavailable.");
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [authLoading, user]);
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -187,13 +180,36 @@ export default function CommunityFeedbackSection() {
                 </div>
               </div>
 
-              <div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="border border-border-subtle bg-bg-base/70 px-3 py-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-content-tertiary">
+                    Live Board
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-white">{items.length}</p>
+                  <p className="mt-1 text-xs text-content-tertiary">Latest public posts</p>
+                </div>
+                <div className="border border-border-subtle bg-bg-base/70 px-3 py-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-content-tertiary">
+                    Mobile First
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-white">Fast</p>
+                  <p className="mt-1 text-xs text-content-tertiary">Large taps, compact layout</p>
+                </div>
+                <div className="col-span-2 border border-border-subtle bg-bg-base/70 px-3 py-3 sm:col-span-1">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-content-tertiary">
+                    Post Limit
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-white">280</p>
+                  <p className="mt-1 text-xs text-content-tertiary">Short and easy to scan</p>
+                </div>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2">
                 <a
                   href="https://instagram.com/exe_faizan"
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Open developer Instagram profile"
-                  className="group block w-full border border-border-subtle bg-bg-surface/65 px-4 py-4 transition-colors duration-300 hover:border-accent/35 hover:bg-bg-surface"
+                  className="group border border-border-subtle bg-bg-surface/65 px-4 py-4 transition-colors duration-300 hover:border-accent/35 hover:bg-bg-surface"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -202,7 +218,7 @@ export default function CommunityFeedbackSection() {
                       </p>
                       <h3 className="mt-2 text-lg font-semibold text-white">@exe_faizan</h3>
                     </div>
-                    <span className="pointer-events-none border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-accent">
+                    <span className="border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-accent">
                       Open
                     </span>
                   </div>
@@ -210,6 +226,16 @@ export default function CommunityFeedbackSection() {
                     For urgent bugs, collabs, and direct AMAI TV feedback.
                   </p>
                 </a>
+
+                <div className="border border-border-subtle bg-bg-surface/65 px-4 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.26em] text-accent">
+                    Why This Layout
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold text-white">Optimized for phones</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-content-tertiary">
+                    Sharper edges, tighter spacing, full-width actions, and a simpler posting flow for thumb-first use.
+                  </p>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="border border-border-subtle bg-bg-surface/55">
@@ -230,9 +256,6 @@ export default function CommunityFeedbackSection() {
                 </div>
 
                 <div className="space-y-4 p-4 md:space-y-5 md:p-5">
-                  <p className="text-xs leading-relaxed text-content-tertiary">
-                    Community posts are loaded live from Firebase and shown on the public board below.
-                  </p>
                   <div>
                     <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-content-tertiary">
                       Post Type
