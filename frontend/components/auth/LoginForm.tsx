@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface LoginFormProps {
   onSwitchToSignup: () => void;
   onClose: () => void;
+  onForgotPassword?: () => void;
 }
 
 type LoginFormData = {
@@ -14,7 +15,11 @@ type LoginFormData = {
   password: string;
 };
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onSwitchToSignup,
+  onClose,
+  onForgotPassword,
+}) => {
   const { signIn, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +36,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
     setError(null);
     try {
       await signIn(data.email, data.password);
+      onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
@@ -43,6 +49,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
     setError(null);
     try {
       await signInWithGoogle();
+      onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google.');
     } finally {
@@ -51,19 +58,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start space-x-3 animate-in fade-in slide-in-from-top-2">
-          <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 sm:p-4 animate-in fade-in slide-in-from-top-2">
+          <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-sm text-red-500 font-medium">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-4">
-          <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary ml-1">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4">
+          <label htmlFor="email" className="block pl-1 text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary">
             Email Address
           </label>
           <div className="relative group">
@@ -82,12 +89,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
             />
           </div>
           {errors.email && (
-            <p className="mt-1 text-xs text-red-500 font-medium ml-1">{errors.email.message}</p>
+            <p className="mt-1 pl-1 text-xs font-medium text-red-500">{errors.email.message}</p>
           )}
         </div>
 
-        <div className="space-y-4">
-          <label htmlFor="password" className="block text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary ml-1">
+        <div className="space-y-3 sm:space-y-4">
+          <label htmlFor="password" className="block pl-1 text-[10px] font-black uppercase tracking-[0.2em] text-content-tertiary">
             Password
           </label>
           <div className="relative group">
@@ -122,14 +129,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-xs text-red-500 font-medium ml-1">{errors.password.message}</p>
+            <p className="mt-1 pl-1 text-xs font-medium text-red-500">{errors.password.message}</p>
           )}
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 bg-accent text-bg-base font-black uppercase tracking-widest text-xs rounded-xl hover:shadow-2xl hover:shadow-accent/40 active:scale-[0.98] transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+          className="group relative h-12 w-full overflow-hidden rounded-xl bg-accent text-bg-base text-xs font-black uppercase tracking-widest transition-all duration-500 hover:shadow-2xl hover:shadow-accent/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
           <div className="relative flex items-center justify-center gap-3">
@@ -143,17 +150,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
         </button>
       </form>
 
-      <div className="space-y-6">
+      {onForgotPassword && (
+        <div className="-mt-1 text-center sm:-mt-2">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="rounded-full px-3 py-2 text-xs font-medium text-content-tertiary transition-colors hover:bg-accent/5 hover:text-accent"
+          >
+            Forgot your password?
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-5 sm:space-y-6">
         <div className="relative flex items-center">
           <div className="flex-grow border-t border-border-subtle/30"></div>
-          <span className="flex-shrink mx-4 text-[10px] font-black uppercase tracking-[0.3em] text-content-tertiary">Or continue with</span>
+          <span className="mx-3 flex-shrink text-[10px] font-black uppercase tracking-[0.28em] text-content-tertiary sm:mx-4 sm:tracking-[0.3em]">Or continue with</span>
           <div className="flex-grow border-t border-border-subtle/30"></div>
         </div>
 
         <button
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full h-12 bg-bg-surface/50 hover:bg-bg-surface border border-border-subtle text-content-primary font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 group shadow-lg"
+          className="group flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border-subtle bg-bg-surface/50 font-bold text-content-primary shadow-lg transition-all duration-300 hover:bg-bg-surface disabled:cursor-not-allowed disabled:opacity-50 sm:gap-4"
         >
           <svg className="w-5 h-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -165,11 +184,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose 
         </button>
 
         <div className="text-center">
-          <p className="text-content-tertiary text-[13px] font-medium">
+          <p className="text-[13px] font-medium leading-6 text-content-tertiary">
             New to AMAI TV?{' '}
             <button
               onClick={onSwitchToSignup}
-              className="text-accent hover:underline font-bold transition-all ml-1"
+              className="ml-1 font-bold text-accent transition-all hover:underline"
             >
               Create Account
             </button>

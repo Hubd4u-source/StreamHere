@@ -1,0 +1,411 @@
+# PROJECT_MEMORY
+
+Repo root: `C:\Users\Firda\Videos\StreamHere-main`
+
+## Operating Notes
+- This file is the session memory and project snapshot log for this repo.
+- Before editing an existing file, create a timestamped backup in `.codex-backups/` and record it here.
+- For new files, create an `.absent` marker if no prior file state exists.
+- `node_modules/` and `frontend/.next/` are treated as generated/external runtime artifacts and are observed, but not maintained as authored source.
+
+## Session: 2026-04-04 10:03:48 +05:30
+### Codebase Snapshot
+- Files analyzed:
+  - Full non-`node_modules` filesystem inventory captured from repo root on 2026-04-04 10:03:48 +05:30.
+  - Key source/config files reviewed directly: `package.json`, `frontend/package.json`, `requirements.txt`, `frontend/app/layout.tsx`, `frontend/app/page.tsx`, `frontend/middleware.ts`, `frontend/next.config.js`, `frontend/server/scraper.ts`, `frontend/lib/firebase.ts`, `frontend/app/api/featured/route.ts`, `frontend/app/api/latest-episodes/route.ts`, `.codex-backups/pre-analysis-20260402-194404.txt`.
+  - Parallel analysis completed across dependency, architecture, integration, and file-registry domains.
+- Key dependencies:
+  - Root tooling: `concurrently`
+  - Frontend runtime: `next`, `react`, `react-dom`, `typescript`, `tailwindcss`
+  - Data/scraping: `axios`, `cheerio`
+  - User/auth/data: `firebase`
+  - UI/forms/analytics: `@headlessui/react`, `@heroicons/react`, `react-hook-form`, `@vercel/analytics`
+  - Python manifest only: `fastapi`, `uvicorn`, `requests`, `beautifulsoup4`
+- Integration points:
+  - Client components fetch internal Next API routes under `frontend/app/api/**`
+  - API routes call `frontend/server/scraper.ts`, `frontend/server/featured.ts`, and `frontend/lib/homeFeed.ts`
+  - External services observed: source WordPress-style site via `SITE_BASE`, TMDB, Jikan, AniSchedule GitHub raw JSON, Firebase Auth/Firestore/Storage/Analytics
+  - Persistence split across Firestore (`userDataService`, `settingsService`, `animeCacheService`) and browser `localStorage`
+
+### Unified Codebase Map
+- Current architecture:
+  - Effective app runtime is a single Next.js 14 App Router app in `frontend/`
+  - Root `package.json` still references a missing `backend` workspace
+  - Scraper/server logic is colocated inside the frontend app rather than a separate backend package
+- Main entry points:
+  - `frontend/app/layout.tsx` wraps the app in `AuthProvider` and `SettingsProvider`
+  - `frontend/app/page.tsx` builds the home page from featured, latest, trending, ongoing, upcoming, movie, and cartoon feeds
+  - `frontend/app/actions.ts` exposes server actions for list/search-style pages
+  - `frontend/app/admin/layout.tsx` gates admin routes through `AdminGuard`
+- Module boundaries:
+  - `frontend/app/` = routes, layouts, API handlers, metadata
+  - `frontend/components/` = reusable UI and interactive client components
+  - `frontend/server/` = scraper, featured-feed assembly, shared server types
+  - `frontend/lib/` = Firebase setup, Firestore services, cache, SEO, utility modules
+  - `frontend/contexts/` = auth/settings global client state
+  - `frontend/hooks/` = Firestore-backed user hooks
+  - `scripts/` = repo-side sync tooling
+- Data flow:
+  - Browser/page component -> internal `/api/*` route -> scraper/service layer -> source site and third-party APIs -> JSON -> UI
+  - Auth flow: Firebase Auth -> `AuthContext` -> `userDataService`
+  - Admin sync flow: `/admin/content/sync` -> `/api/admin/bulk-sync` -> scraper import -> Firestore cache
+  - Watch flow: server-side episode resolution -> `Player` -> local progress + Firestore watch history
+
+### Changes Made
+- `PROJECT_MEMORY.md` -> created initial persistent project memory and unified codebase map
+- `PROJECT_MEMORY.md` -> normalized session text to ASCII-safe formatting for cleaner diffs
+- Status: Working
+
+### Backups Created
+- `PROJECT_MEMORY.md` -> `.codex-backups/PROJECT_MEMORY.md.backup-20260404-100345.absent`
+- `PROJECT_MEMORY.md` -> `.codex-backups/PROJECT_MEMORY.md.backup-20260404-100903`
+
+### What's Currently Working
+- Repository analysis workflow - completed on 2026-04-04 10:03:48 +05:30
+- Parallel codebase analysis via sub-agents - completed on 2026-04-04 10:03:48 +05:30
+- Persistent memory bootstrap - completed on 2026-04-04 10:03:48 +05:30
+- No runtime verification was executed in this session yet
+
+### Known Issues / Watch Points
+- Root workspace mismatch: `package.json` expects `backend` but no `backend/` exists in this checkout
+- Root `package-lock.json` is present but empty (`0` bytes)
+- `requirements.txt` exists without corresponding Python source in the repo
+- Dirty worktree already existed before this session in multiple frontend files
+- Potentially undeclared script dependency: `scripts/mega-sync.mjs` uses `node-fetch`
+- `frontend/server/scraper.ts` includes a hardcoded TMDB fallback key and is the highest-risk file for regressions due to size/scope
+- User state is split between Firestore and `localStorage`, increasing drift risk
+- Some metadata/docs show encoding artifacts such as mojibake
+- CSP is broad on some external allowances
+
+### Dirty Worktree Observed Before New Changes
+- Modified:
+  - `frontend/app/anime/page.tsx`
+  - `frontend/app/cartoon/page.tsx`
+  - `frontend/app/layout.tsx`
+  - `frontend/app/movies/page.tsx`
+  - `frontend/app/page.tsx`
+  - `frontend/app/series/page.tsx`
+  - `frontend/app/signin/page.tsx`
+  - `frontend/components/Footer.tsx`
+  - `frontend/components/auth/AuthModal.tsx`
+  - `frontend/components/auth/LoginForm.tsx`
+  - `frontend/components/auth/SignupForm.tsx`
+  - `frontend/lib/firebase.ts`
+- Untracked:
+  - `.codex-backups/`
+  - `frontend/app/api/latest-episodes/route.ts`
+  - `frontend/components/CommunityFeedbackSection.tsx`
+  - `frontend/components/FirstVisitSignInPrompt.tsx`
+  - `frontend/components/LatestEpisodesShelf.tsx`
+  - `frontend/lib/homeFeed.ts`
+
+### Route and API Surface
+- Main pages:
+  - `/`
+  - `/anime`
+  - `/series`
+  - `/movies`
+  - `/movies/[slug]`
+  - `/cartoon`
+  - `/ongoing`
+  - `/upcoming`
+  - `/schedule`
+  - `/title`
+  - `/title/[slug]`
+  - `/watch`
+  - `/watch/[slug]`
+  - `/search`
+  - `/list`
+  - `/genres`
+  - `/letter/[letter]`
+  - `/networks`
+  - `/networks/[slug]`
+  - `/signin`
+  - `/profile`
+  - `/profile/edit`
+  - `/my-list`
+  - `/watch-history`
+  - `/leaderboard`
+  - `/admin` plus nested admin content/users/broadcast/analytics/settings pages
+- API routes:
+  - `/api/anime_list`
+  - `/api/anime_details`
+  - `/api/episode_players`
+  - `/api/featured`
+  - `/api/latest-episodes`
+  - `/api/ongoing`
+  - `/api/upcoming`
+  - `/api/schedule`
+  - `/api/search`
+  - `/api/image`
+  - `/api/debug`
+  - `/api/admin/bulk-sync`
+  - `/api/admin/cron-sync`
+
+### File Registry
+All paths below are relative to `C:\Users\Firda\Videos\StreamHere-main`.
+
+| Path | Purpose | Last Known State |
+| --- | --- | --- |
+| `.gitignore` | Git ignore rules | present |
+| `AMAI_TV_UI_Redesign_Prompt.md` | UI redesign/spec prompt | present |
+| `googled03c700b5085c514.html` | root Google site verification file | present |
+| `LICENSE` | license text | present |
+| `new.png` | root image asset/reference | present |
+| `Old.png` | root image asset/reference | present |
+| `package.json` | root workspace/tooling manifest | present, backend workspace mismatch |
+| `package-lock.json` | root lockfile | present, empty/stale |
+| `player.html` | legacy/static player snapshot | present |
+| `README.md` | project overview and setup notes | present |
+| `requirements.txt` | Python dependency manifest | present, likely incidental |
+| `scripts/mega-sync.mjs` | admin bulk-sync helper script | present |
+| `shcedule.html` | legacy/static schedule snapshot | present, filename misspelled |
+| `upcoming.html` | legacy/static upcoming snapshot | present |
+| `.codex-backups/pre-analysis-20260402-194404.bundle` | prior workspace backup artifact | present, backup artifact |
+| `.codex-backups/pre-analysis-20260402-194404.txt` | prior backup metadata | present, backup artifact |
+| `.codex-backups/workspace-backup-20260402-194101.zip` | prior workspace archive | present, backup artifact |
+| `.codex-backups/PROJECT_MEMORY.md.backup-20260404-100345.absent` | absent-state marker before memory file creation | present, current-session backup |
+| `frontend/vercel.json` | Vercel config and cron schedule | present |
+| `frontend/tsconfig.tsbuildinfo` | TS incremental build artifact | present, generated |
+| `frontend/tsconfig.json` | TS config with path aliasing | present |
+| `frontend/tailwind.config.ts` | Tailwind theme/config | present |
+| `frontend/server/types.ts` | shared server-side domain types | present |
+| `frontend/server/scraper.ts` | core scraper/data aggregation layer | present, high-risk core file |
+| `frontend/server/featured.ts` | featured/hero feed assembly | present |
+| `frontend/public/site.webmanifest` | PWA metadata | present |
+| `frontend/public/og-image.png` | social preview asset | present |
+| `frontend/public/Logo.jpg` | branding asset | present |
+| `frontend/public/images/login-bg.png` | auth background asset | present |
+| `frontend/public/googled03c700b5085c514.html` | frontend Google site verification file | present |
+| `frontend/public/favicon.ico` | favicon asset | present |
+| `frontend/public/favicon-96x96.png` | favicon asset | present |
+| `frontend/public/favicon-48x48.png` | favicon asset | present |
+| `frontend/public/favicon-32x32.png` | favicon asset | present |
+| `frontend/public/favicon-16x16.png` | favicon asset | present |
+| `frontend/public/favicon-144x144.png` | favicon asset | present |
+| `frontend/public/Background.png` | site background asset | present |
+| `frontend/public/apple-touch-icon.png` | PWA icon asset | present |
+| `frontend/public/android-chrome-512x512.png` | PWA icon asset | present |
+| `frontend/public/android-chrome-192x192.png` | PWA icon asset | present |
+| `frontend/postcss.config.js` | PostCSS config | present |
+| `frontend/package.json` | frontend runtime manifest | present |
+| `frontend/next.config.js` | security headers, rewrites, cache policy | present |
+| `frontend/next-env.d.ts` | Next.js TS env types | present |
+| `frontend/middleware.ts` | API-only CORS and rate-limit middleware | present |
+| `frontend/lib/utils.ts` | generic utility helpers | present |
+| `frontend/lib/userDataService.ts` | Firestore-backed user profile/history/list service | present |
+| `frontend/lib/settingsService.ts` | Firestore-backed site settings service | present |
+| `frontend/lib/seoUtils.ts` | SEO helper functions | present |
+| `frontend/lib/homeFeed.ts` | latest-episodes feed composition | untracked |
+| `frontend/lib/firestore.ts` | older/simple Firestore helper module | present |
+| `frontend/lib/firebase.ts` | Firebase init and emulator wiring | modified before session |
+| `frontend/lib/api.ts` | relative API helper module | present |
+| `frontend/lib/animeCacheService.ts` | Firestore-backed anime cache service | present |
+| `frontend/lib/animeAvatars.ts` | avatar/source data constants | present |
+| `frontend/lib/achievements.ts` | achievement rules and helpers | present |
+| `frontend/hooks/useWatchHistory.ts` | Firestore-backed watch history hook | present |
+| `frontend/hooks/useMyList.ts` | Firestore-backed my-list hook | present |
+| `frontend/FIREBASE_SETUP.md` | Firebase setup documentation | present |
+| `frontend/contexts/SettingsContext.tsx` | settings provider/context | present |
+| `frontend/contexts/AuthContext.tsx` | auth provider/context | present |
+| `frontend/components/useProgress.ts` | localStorage watch-progress hook | present |
+| `frontend/components/useMyList.ts` | localStorage my-list hook | present |
+| `frontend/components/UpcomingEpisodesGrid.tsx` | upcoming episodes UI grid | present |
+| `frontend/components/ui/Carousel.tsx` | reusable carousel primitive | present |
+| `frontend/components/Tabs.tsx` | tabs UI component | present |
+| `frontend/components/SmartButtons.tsx` | detail/watch action buttons | present |
+| `frontend/components/Skeleton.tsx` | loading skeleton UI | present |
+| `frontend/components/SeasonSelector.tsx` | season switcher UI | present |
+| `frontend/components/RelatedSeriesCard.tsx` | related-title card UI | present |
+| `frontend/components/RecentlyWatchedHome.tsx` | recently watched home shelf | present |
+| `frontend/components/ReadMore.tsx` | expandable text UI | present |
+| `frontend/components/Player.tsx` | watch player and progress/event logic | present, event-heavy |
+| `frontend/components/OngoingSeriesGrid.tsx` | ongoing series UI grid | present |
+| `frontend/components/NewNavbar.tsx` | current main navbar UI | present |
+| `frontend/components/NewHeroSlider.tsx` | current hero slider UI | present |
+| `frontend/components/NewCarousel.tsx` | current carousel wrapper | present |
+| `frontend/components/NewBottomNav.tsx` | current mobile bottom nav | present |
+| `frontend/components/NewAnimeCard.tsx` | current anime card UI | present |
+| `frontend/components/Navbar.tsx` | older navbar variant | present |
+| `frontend/components/MyListButton.tsx` | add/remove my-list action button | present |
+| `frontend/components/LatestEpisodesShelf.tsx` | latest episodes home shelf | untracked |
+| `frontend/components/InfiniteGrid.tsx` | infinite-scroll grid component | present |
+| `frontend/components/HeroSlider.tsx` | older hero slider variant | present |
+| `frontend/components/HeroBanner.tsx` | hero banner with featured fetch/scroll behavior | present |
+| `frontend/components/Hero.tsx` | older hero component | present |
+| `frontend/components/Footer.tsx` | site footer | modified before session |
+| `frontend/components/FirstVisitSignInPrompt.tsx` | prompt banner using localStorage dismiss state | untracked |
+| `frontend/components/EpisodesList.tsx` | episode list UI | present |
+| `frontend/components/EpisodeCard.tsx` | episode card UI | present |
+| `frontend/components/DetailsHeader.tsx` | title details header UI | present |
+| `frontend/components/DesktopNav.tsx` | desktop nav UI | present |
+| `frontend/components/ContinueWatchingHome.tsx` | continue-watching home shelf | present |
+| `frontend/components/CommunityFeedbackSection.tsx` | Firestore-backed feedback UI | untracked |
+| `frontend/components/BroadcastHistory.tsx` | broadcast history display | present |
+| `frontend/components/BroadcastBanner.tsx` | global broadcast banner | present |
+| `frontend/components/Breadcrumbs.tsx` | breadcrumbs UI | present |
+| `frontend/components/BottomNav.tsx` | older bottom nav variant | present |
+| `frontend/components/auth/UserProfile.tsx` | signed-in user profile UI | present |
+| `frontend/components/auth/SignupForm.tsx` | signup form UI | modified before session |
+| `frontend/components/auth/PasswordResetForm.tsx` | password reset form UI | present |
+| `frontend/components/auth/LoginForm.tsx` | login form UI | modified before session |
+| `frontend/components/auth/AuthModal.tsx` | auth modal shell | modified before session |
+| `frontend/components/AnimeTile.tsx` | compact anime tile UI | present |
+| `frontend/components/AnimeLink.tsx` | link helper that resolves title details lazily | present |
+| `frontend/components/AnimeGridCard.tsx` | grid card UI | present |
+| `frontend/components/AdminGuard.tsx` | admin route guard wrapper | present |
+| `frontend/app/watch-history/page.tsx` | watch history page route | present |
+| `frontend/app/watch/[slug]/page.tsx` | canonical watch page route | present |
+| `frontend/app/watch/page.tsx` | legacy watch resolver route | present |
+| `frontend/app/my-list/page.tsx` | my-list page route | present |
+| `frontend/app/upcoming/UpcomingEpisodesClient.tsx` | client loader for upcoming page | present |
+| `frontend/app/upcoming/page.tsx` | upcoming page route | present |
+| `frontend/app/movies/[slug]/page.tsx` | movie detail page route | present |
+| `frontend/app/movies/page.tsx` | movies listing route | modified before session |
+| `frontend/app/manifest.ts` | dynamic web manifest route | present |
+| `frontend/app/loading.tsx` | global loading UI | present |
+| `frontend/app/title/[slug]/page.tsx` | series/title detail route | present |
+| `frontend/app/title/page.tsx` | title index/helper route | present |
+| `frontend/app/test-scraper/page.tsx` | scraper diagnostics page | present |
+| `frontend/app/list/page.tsx` | browse/list page route | present |
+| `frontend/app/terms/page.tsx` | terms page route | present |
+| `frontend/app/sitemap.ts` | sitemap route | present |
+| `frontend/app/letter/[letter]/page.tsx` | alphabet listing route | present |
+| `frontend/app/signin/page.tsx` | signin page route | modified before session |
+| `frontend/app/leaderboard/page.tsx` | leaderboard page route | present |
+| `frontend/app/series/page.tsx` | series listing page route | modified before session |
+| `frontend/app/layout.tsx` | root app layout and providers | modified before session |
+| `frontend/app/globals.css` | global stylesheet | present |
+| `frontend/app/global-error.tsx` | global error boundary | present |
+| `frontend/app/search/page.tsx` | search page route | present |
+| `frontend/app/genres/page.tsx` | genres page route | present |
+| `frontend/app/error.tsx` | route-level error UI | present |
+| `frontend/app/dmca/page.tsx` | DMCA page route | present |
+| `frontend/app/schedule/page.tsx` | schedule page route | present |
+| `frontend/app/robots.ts` | robots route | present |
+| `frontend/app/cartoon/page.tsx` | cartoon listing page route | modified before session |
+| `frontend/app/profile/page.tsx` | profile page route | present |
+| `frontend/app/not-found.tsx` | not-found UI | present |
+| `frontend/app/page.tsx` | home page route | modified before session |
+| `frontend/app/profile/edit/page.tsx` | profile edit page route | present |
+| `frontend/app/api/anime_list/route.ts` | anime list API route | present |
+| `frontend/app/api/image/route.ts` | image proxy API route | present |
+| `frontend/app/api/episode_players/route.ts` | episode player API route | present |
+| `frontend/app/anime/page.tsx` | anime listing page route | modified before session |
+| `frontend/app/privacy/page.tsx` | privacy page route | present |
+| `frontend/app/networks/page.tsx` | networks index route | present |
+| `frontend/app/api/upcoming/route.ts` | upcoming API route | present |
+| `frontend/app/api/ongoing/route.ts` | ongoing API route | present |
+| `frontend/app/api/debug/route.ts` | debug API route | present |
+| `frontend/app/actions.ts` | server actions for list/search/navigation pages | present |
+| `frontend/app/ongoing/OngoingSeriesClient.tsx` | client loader for ongoing page | present |
+| `frontend/app/ongoing/page.tsx` | ongoing page route | present |
+| `frontend/app/api/anime_details/route.ts` | anime details API route | present |
+| `frontend/app/networks/[slug]/page.tsx` | network detail route | present |
+| `frontend/app/api/schedule/route.ts` | schedule API route | present |
+| `frontend/app/api/featured/route.ts` | featured API route | present |
+| `frontend/app/api/latest-episodes/route.ts` | latest episodes API route | untracked |
+| `frontend/app/admin/layout.tsx` | admin layout route | present |
+| `frontend/app/api/search/route.ts` | search API route | present |
+| `frontend/app/admin/page.tsx` | admin dashboard route | present |
+| `frontend/app/api/admin/cron-sync/route.ts` | scheduled admin sync API route | present |
+| `frontend/app/api/admin/bulk-sync/route.ts` | manual bulk sync API route | present |
+| `frontend/app/admin/analytics/page.tsx` | admin analytics route | present |
+| `frontend/app/admin/content/page.tsx` | admin content route | present |
+| `frontend/app/admin/users/page.tsx` | admin users route | present |
+| `frontend/app/admin/broadcast/page.tsx` | admin broadcast route | present |
+| `frontend/app/admin/settings/page.tsx` | admin settings route | present |
+| `frontend/app/admin/content/[slug]/page.tsx` | admin content detail route | present |
+| `frontend/app/admin/content/sync/page.tsx` | admin content sync route | present |
+
+### Observed Local / Generated Trees
+- `frontend/.env.local` exists locally and was observed during inventory; contents were not read
+- `frontend/.next/` exists and contains generated Next build output from prior local runs
+- `node_modules/` exists at repo root and contains installed dependencies
+
+### Protocol Notes For Future Edits
+- Before editing any existing file, create `.codex-backups/<filename>.backup-YYYYMMDD-HHMMSS`
+- Record each backup path in the active session block
+- Preserve user changes already present in the dirty worktree unless explicitly asked to revert them
+
+## Session: 2026-04-04 10:13:50 +05:30
+### Codebase Snapshot
+- Files analyzed:
+  - `frontend/app/page.tsx`
+  - `frontend/app/anime/page.tsx`
+  - `frontend/app/cartoon/page.tsx`
+  - `frontend/app/movies/page.tsx`
+  - `frontend/app/series/page.tsx`
+  - `frontend/app/api/featured/route.ts`
+  - `frontend/app/api/ongoing/route.ts`
+  - `frontend/app/api/upcoming/route.ts`
+  - `frontend/app/api/schedule/route.ts`
+  - `frontend/vercel.json`
+- Key dependencies:
+  - Next.js App Router route config (`dynamic`, `revalidate`)
+  - `NextResponse.json` response headers for API cache control
+- Integration points:
+  - Homepage server rendering in `frontend/app/page.tsx`
+  - Listing page server rendering in `frontend/app/anime/page.tsx`, `frontend/app/cartoon/page.tsx`, `frontend/app/movies/page.tsx`, `frontend/app/series/page.tsx`
+  - Client-fetched home APIs in `frontend/app/api/featured/route.ts`, `frontend/app/api/ongoing/route.ts`, `frontend/app/api/upcoming/route.ts`, `frontend/app/api/schedule/route.ts`
+
+### Changes Made
+- `frontend/app/page.tsx` -> added `dynamic = "force-dynamic"` so the homepage is rendered on demand instead of waiting for ISR
+- `frontend/app/anime/page.tsx` -> added `dynamic = "force-dynamic"` so anime listings fetch fresh data per request
+- `frontend/app/cartoon/page.tsx` -> added `dynamic = "force-dynamic"` so cartoon listings fetch fresh data per request
+- `frontend/app/movies/page.tsx` -> added `dynamic = "force-dynamic"` so movie listings fetch fresh data per request
+- `frontend/app/series/page.tsx` -> added `dynamic = "force-dynamic"` so series listings fetch fresh data per request
+- `frontend/app/api/featured/route.ts` -> added explicit `Cache-Control: no-store` headers to featured API responses
+- `frontend/app/api/ongoing/route.ts` -> added explicit `Cache-Control: no-store` headers to ongoing API responses
+- `frontend/app/api/upcoming/route.ts` -> made route dynamic and added explicit `Cache-Control: no-store` headers
+- `frontend/app/api/schedule/route.ts` -> removed hourly `revalidate` behavior and added explicit `Cache-Control: no-store` headers
+- `PROJECT_MEMORY.md` -> appended cache-removal session details and verification notes
+- Status: Working
+
+### Backups Created
+- `frontend/app/page.tsx` -> `.codex-backups/page.tsx.backup-20260404-101046`
+- `frontend/app/anime/page.tsx` -> `.codex-backups/anime.page.tsx.backup-20260404-101046`
+- `frontend/app/cartoon/page.tsx` -> `.codex-backups/cartoon.page.tsx.backup-20260404-101046`
+- `frontend/app/movies/page.tsx` -> `.codex-backups/movies.page.tsx.backup-20260404-101046`
+- `frontend/app/series/page.tsx` -> `.codex-backups/series.page.tsx.backup-20260404-101046`
+- `frontend/app/api/featured/route.ts` -> `.codex-backups/featured.route.ts.backup-20260404-101046`
+- `frontend/app/api/ongoing/route.ts` -> `.codex-backups/ongoing.route.ts.backup-20260404-101046`
+- `frontend/app/api/upcoming/route.ts` -> `.codex-backups/upcoming.route.ts.backup-20260404-101046`
+- `frontend/app/api/schedule/route.ts` -> `.codex-backups/schedule.route.ts.backup-20260404-101046`
+- `PROJECT_MEMORY.md` -> `.codex-backups/PROJECT_MEMORY.md.backup-20260404-101350`
+
+### What's Currently Working
+- Homepage and the main listing pages now build as dynamic routes and can refresh data without waiting for ISR windows
+- Featured, ongoing, upcoming, and schedule API responses now send `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`
+- Production build succeeded on 2026-04-04 10:13:50 +05:30 using `cmd /c ..\node_modules\.bin\next.cmd build --no-lint`
+
+### Known Issues / Watch Points
+- `frontend/app/page.tsx`, `frontend/app/anime/page.tsx`, `frontend/app/cartoon/page.tsx`, `frontend/app/movies/page.tsx`, and `frontend/app/series/page.tsx` already had pre-existing user changes before this cache update
+- The root `package-lock.json` is still empty and produced repeated `Unexpected end of JSON input` warnings during Next.js build post-processing
+- `frontend/vercel.json` still intentionally caches `sitemap.xml`, `robots.txt`, and `manifest.webmanifest`; these were left unchanged because they are not the content freshness bottleneck
+- Dynamic rendering will increase origin work on each request, so freshness improves at the cost of some performance/cache efficiency
+
+## Session: 2026-04-04 10:16:21 +05:30
+### Codebase Snapshot
+- Files analyzed:
+  - `git status --short`
+  - `git branch --show-current`
+  - `git remote -v`
+- Key dependencies:
+  - Git branch: `main`
+  - Git remote: `origin -> https://github.com/Hubd4u-source/StreamHere`
+- Integration points:
+  - Pending repository state includes cache updates, prior frontend edits, session memory files, and new home/latest episodes components
+
+### Changes Made
+- `PROJECT_MEMORY.md` -> logged commit-and-push session details and backup reference
+- Status: Working
+
+### Backups Created
+- `PROJECT_MEMORY.md` -> `.codex-backups/PROJECT_MEMORY.md.backup-20260404-101621`
+
+### What's Currently Working
+- Repository is on `main` and ready for a full commit/push of the current working tree as of 2026-04-04 10:16:21 +05:30
+
+### Known Issues / Watch Points
+- This commit will include all currently modified and untracked repo files, not only the cache-related patch set

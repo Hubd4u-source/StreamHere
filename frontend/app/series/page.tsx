@@ -8,6 +8,8 @@ import InfiniteGrid from "@/components/InfiniteGrid";
 import { getAnimeAction } from "../actions";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "All Anime Series — Watch Free Online",
   description:

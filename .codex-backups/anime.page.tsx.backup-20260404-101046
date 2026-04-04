@@ -6,7 +6,7 @@ import NewAnimeCard from "@/components/NewAnimeCard";
 import InfiniteGrid from "@/components/InfiniteGrid";
 import { getAnimeAction } from "../actions";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 export default async function AnimePage({ searchParams }: { searchParams: { page?: string } }) {
   const page = Number(searchParams?.page || 1);

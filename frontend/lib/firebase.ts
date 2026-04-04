@@ -29,6 +29,7 @@ function getFirebaseApp(): FirebaseApp | null {
 }
 
 const app = getFirebaseApp();
+export const isFirebaseConfigured = Boolean(app);
 
 // Safe accessors — return real services or throw-safe stubs
 export const auth: Auth = app ? getAuth(app) : ({} as Auth);

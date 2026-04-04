@@ -53,6 +53,7 @@ export default function SignInPage() {
           <LoginForm
             onSwitchToSignup={() => setMode('signup')}
             onClose={() => router.push('/')}
+            onForgotPassword={() => setMode('reset')}
           />
         );
       case 'signup':

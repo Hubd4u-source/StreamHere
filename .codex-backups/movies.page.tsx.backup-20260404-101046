@@ -8,7 +8,7 @@ import InfiniteGrid from "@/components/InfiniteGrid";
 import { getMoviesAction } from "../actions";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Anime Movies — Watch Free Online",

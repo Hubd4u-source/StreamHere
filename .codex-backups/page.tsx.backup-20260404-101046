@@ -17,7 +17,7 @@ import { settingsService } from "@/lib/settingsService";
 import { getLatestEpisodesFeed } from "@/lib/homeFeed";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "Watch Anime Online Free — Hindi Dubbed, English Subbed | AMAI TV",

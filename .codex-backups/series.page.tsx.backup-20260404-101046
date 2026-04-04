@@ -1,24 +1,24 @@
-import { fetchMoviesList } from "@/server/scraper";
+import { fetchAnimeList } from "@/server/scraper";
 import NewNavbar from "@/components/NewNavbar";
 import NewBottomNav from "@/components/NewBottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import NewAnimeCard from "@/components/NewAnimeCard";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import InfiniteGrid from "@/components/InfiniteGrid";
-import { getMoviesAction } from "../actions";
+import { getAnimeAction } from "../actions";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "Anime Movies — Watch Free Online",
+  title: "All Anime Series — Watch Free Online",
   description:
-    "Watch anime movies and specials free online in HD on AMAI TV. Hindi dubbed and English subbed. New movies added regularly.",
-  alternates: { canonical: "https://amaitv.vercel.app/movies" },
+    "Browse all anime series available on AMAI TV. Filter by genre, year, and language. Stream free in HD with Hindi dubbed and English subbed options.",
+  alternates: { canonical: "https://amaitv.vercel.app/series" },
 };
 
 
-export default async function MoviesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
+export default async function SeriesPage({ searchParams }: { searchParams: { page?: string; q?: string } }) {
   const page = Number(searchParams?.page || 1);
   const query = searchParams?.q || "";
   
@@ -26,9 +26,9 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
   let error = null;
   
   try {
-    data = await fetchMoviesList(page, query);
+    data = await fetchAnimeList(page);
   } catch (err) {
-    console.error('Error fetching movies:', err);
+    console.error('Error fetching series:', err);
     error = err instanceof Error ? err.message : 'Unknown error occurred';
   }
   
@@ -40,14 +40,14 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
         <NewNavbar />
         <main className="w-full px-5 md:px-12 py-12 space-y-12 pb-24">
           <div className="text-center space-y-2">
-            <h1 className="section-heading text-4xl">Movies</h1>
-            <p className="section-subtitle">Watch anime movies and specials</p>
+            <h1 className="section-heading text-4xl">Series</h1>
+            <p className="section-subtitle">Discover and watch your favorite anime series</p>
           </div>
           
           <div className="bg-bg-surface border border-border-subtle rounded-md p-8 text-center max-w-2xl mx-auto">
-            <h3 className="section-heading text-xl mb-4">Error Loading Movies</h3>
+            <h3 className="section-heading text-xl mb-4">Error Loading Series</h3>
             <p className="text-content-secondary mb-6">{error}</p>
-            <a href="/movies" className="btn-primary inline-flex">Try Again</a>
+            <a href="/series" className="btn-primary inline-flex">Try Again</a>
           </div>
         </main>
         <NewBottomNav />
@@ -62,8 +62,8 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
       
       <main className="w-full px-5 md:px-12 py-12 space-y-16 pb-32">
         <div className="text-center space-y-3">
-          <h1 className="section-heading text-4xl">Movies</h1>
-          <p className="section-subtitle">Watch anime movies and specials</p>
+          <h1 className="section-heading text-4xl">Series</h1>
+          <p className="section-subtitle">Discover and watch your favorite anime series</p>
         </div>
 
         {/* Search Bar */}
@@ -75,7 +75,7 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
             <input
               type="text"
               name="q"
-              placeholder="Search movies or titles..."
+              placeholder="Search series or titles..."
               defaultValue={query}
               className="w-full pl-12 pr-4 h-12 bg-bg-elevated border border-border-subtle rounded-md text-content-primary placeholder-content-tertiary focus:outline-none focus:border-accent-muted transition-colors"
             />
@@ -92,7 +92,7 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
 
         <InfiniteGrid 
           initialItems={items} 
-          fetchAction={getMoviesAction.bind(null, query)}
+          fetchAction={getAnimeAction}
           initialPage={page}
         />
       </main>
@@ -102,5 +102,3 @@ export default async function MoviesPage({ searchParams }: { searchParams: { pag
     </div>
   );
 }
-
-

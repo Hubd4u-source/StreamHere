@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import Footer from "@/components/Footer";
 import BroadcastBanner from "@/components/BroadcastBanner";
+import FirstVisitSignInPrompt from "@/components/FirstVisitSignInPrompt";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -155,6 +156,7 @@ export default function RootLayout({
         <AuthProvider>
           <SettingsProvider>
             <BroadcastBanner />
+            <FirstVisitSignInPrompt />
             <div className="flex-1 flex flex-col">
               {children}
             </div>

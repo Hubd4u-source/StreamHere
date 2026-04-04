@@ -60,6 +60,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li><Link href="/search" className="text-content-tertiary hover:text-accent transition-colors">Search</Link></li>
               <li><Link href="/networks" className="text-content-tertiary hover:text-accent transition-colors">Networks</Link></li>
+              <li><Link href="/#community-feedback" className="text-content-tertiary hover:text-accent transition-colors">Feedback Wall</Link></li>
               <li><Link href="/terms" className="text-content-tertiary hover:text-accent transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="text-content-tertiary hover:text-accent transition-colors">Privacy Policy</Link></li>
               <li><Link href="/dmca" className="text-content-tertiary hover:text-accent transition-colors">DMCA</Link></li>
@@ -72,6 +73,17 @@ export default function Footer() {
 
         {/* Bottom section */}
         <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <a
+              href="https://instagram.com/exe_faizan"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent transition-colors hover:bg-accent/15"
+            >
+              Talk To Developer
+              <span className="text-content-primary">@exe_faizan</span>
+            </a>
+          </div>
           <p className="text-content-secondary text-[13px] font-medium tracking-wide">
             &copy; <span className="text-accent font-bold">2026</span> AMAI TV India. All Rights Reserved.
           </p>
